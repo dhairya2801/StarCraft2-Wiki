@@ -129,15 +129,20 @@
     .canvas-header {
       padding: clamp(14px, 1.8vw, 18px) clamp(16px, 2vw, 22px) clamp(12px, 1.5vw, 14px);
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      gap: 16px;
-      flex-wrap: wrap;
+      display: grid;
+      gap: 10px;
       background:
         radial-gradient(circle at top right, rgba(255, 255, 255, 0.08), transparent 24%),
         linear-gradient(160deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)),
         var(--panel);
+    }
+
+    .canvas-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      min-width: 0;
     }
 
     .canvas-title {
@@ -149,7 +154,7 @@
     }
 
     .canvas-subtitle {
-      margin: 6px 0 0;
+      margin: 0;
       color: var(--muted);
       font-size: 0.95rem;
       max-width: 52ch;
@@ -158,9 +163,9 @@
     .canvas-actions {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       flex-wrap: wrap;
-      justify-content: flex-end;
+      justify-content: space-between;
     }
 
     .header-link {
@@ -185,6 +190,65 @@
       font-size: 0.8rem;
       font-weight: 700;
       white-space: nowrap;
+    }
+
+    .like-widget {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px;
+      border-radius: 999px;
+      background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.08), transparent 28%),
+        linear-gradient(160deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03)),
+        rgba(11, 16, 27, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      flex: 0 0 auto;
+    }
+
+    .like-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 48px;
+      height: 38px;
+      padding: 0 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      font-size: 0.9rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .like-button {
+      appearance: none;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      height: 38px;
+      padding: 0 14px;
+      font: inherit;
+      font-weight: 700;
+      color: var(--text);
+      cursor: pointer;
+      background: linear-gradient(135deg, rgba(210, 169, 88, 0.26), rgba(116, 183, 255, 0.18));
+      transition: transform 160ms ease, border-color 160ms ease, opacity 160ms ease;
+    }
+
+    .like-button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+
+    .like-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.76;
+    }
+
+    .like-widget[data-like-state="liked"] .like-button {
+      color: var(--accent-2);
+      background: linear-gradient(135deg, rgba(116, 183, 255, 0.24), rgba(255, 255, 255, 0.08));
     }
 
     #network {
@@ -403,13 +467,8 @@
         border-top: 1px solid rgba(255, 255, 255, 0.08);
       }
 
-      .canvas-header {
+      .canvas-title-row {
         align-items: flex-start;
-      }
-
-      .canvas-actions {
-        justify-content: flex-start;
-        width: 100%;
       }
     }
 
@@ -436,10 +495,25 @@
         font-size: 0.9rem;
       }
 
+      .canvas-title-row {
+        flex-wrap: wrap;
+      }
+
       .header-link,
-      .canvas-badge {
+      .canvas-badge,
+      .like-button {
         padding: 9px 12px;
         font-size: 0.76rem;
+      }
+
+      .like-count,
+      .like-button {
+        height: 34px;
+      }
+
+      .like-count {
+        min-width: 42px;
+        padding: 0 10px;
       }
 
       #network {
@@ -462,13 +536,17 @@
     <main class="canvas-pane">
       <section class="canvas-card">
         <div class="canvas-header">
-          <div>
+          <div class="canvas-title-row">
             <h1 class="canvas-title">Protoss Tech Tree</h1>
+            <div class="like-widget" data-like-widget data-tree-key="protoss" data-tree-label="Protoss Tech Tree">
+              <button class="like-button" type="button" data-like-button>Loading...</button>
+              <span class="like-count" data-like-count aria-live="polite">--</span>
+            </div>
+          </div>
+          <div class="canvas-actions">
             <p class="canvas-subtitle">
               Drag nodes, zoom the psionic map, and click any node or arrow for details.
             </p>
-          </div>
-          <div class="canvas-actions">
             <a class="header-link" href="index.html">Back to Wiki</a>
           </div>
         </div>
@@ -1897,5 +1975,9 @@
       renderDefaultPanel();
     });
   </script>
+  <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="tech-tree-likes.js"></script>
 </body>
 </html>
