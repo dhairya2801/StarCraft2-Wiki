@@ -1,0 +1,1798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StarCraft II Zerg Tech Tree</title>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/vis-network/styles/vis-network.min.css"
+  />
+  <style>
+    :root {
+      --bg-1: #0d1320;
+      --bg-2: #161d2b;
+      --panel: rgba(16, 22, 35, 0.72);
+      --panel-strong: rgba(18, 25, 39, 0.86);
+      --line: rgba(255, 255, 255, 0.1);
+      --text: #f4f7fb;
+      --muted: #a5b0c4;
+      --accent: #8fcb63;
+      --accent-soft: rgba(143, 203, 99, 0.18);
+      --accent-2: #e5a15d;
+      --accent-2-soft: rgba(229, 161, 93, 0.16);
+      --shadow: rgba(0, 0, 0, 0.36);
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100dvh;
+      font-family: "Avenir Next", "Segoe UI", sans-serif;
+      color: var(--text);
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 15% 20%, var(--accent-soft), transparent 18%),
+        radial-gradient(circle at 82% 18%, var(--accent-2-soft), transparent 16%),
+        radial-gradient(circle at 70% 82%, rgba(126, 86, 184, 0.14), transparent 18%),
+        linear-gradient(135deg, var(--bg-1), var(--bg-2));
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    body::before {
+      background:
+        radial-gradient(circle at 12% 24%, rgba(255, 255, 255, 0.24) 0 1px, transparent 1.2px),
+        radial-gradient(circle at 32% 62%, rgba(255, 255, 255, 0.18) 0 1px, transparent 1.2px),
+        radial-gradient(circle at 74% 34%, rgba(255, 255, 255, 0.2) 0 1px, transparent 1.2px),
+        radial-gradient(circle at 88% 72%, rgba(255, 255, 255, 0.18) 0 1px, transparent 1.2px),
+        radial-gradient(circle at 60% 88%, rgba(255, 255, 255, 0.16) 0 1px, transparent 1.2px);
+      opacity: 0.65;
+      background-size: 360px 360px;
+      animation: drift 20s linear infinite;
+    }
+
+    body::after {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0));
+      mix-blend-mode: screen;
+    }
+
+    @keyframes drift {
+      from {
+        transform: translate3d(0, 0, 0);
+      }
+
+      to {
+        transform: translate3d(-24px, 18px, 0);
+      }
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      width: min(1240px, calc(100% - clamp(16px, 3vw, 32px)));
+      height: calc(100dvh - clamp(16px, 3vw, 48px));
+      min-height: calc(100dvh - clamp(16px, 3vw, 48px));
+      margin: clamp(8px, 2vw, 24px) auto;
+      padding: clamp(14px, 2.3vw, 28px);
+      border-radius: 32px;
+      background: linear-gradient(180deg, rgba(20, 27, 42, 0.72), rgba(13, 18, 29, 0.78));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 24px 60px var(--shadow);
+      backdrop-filter: blur(18px);
+      display: grid;
+      grid-template-columns: minmax(0, 2.15fr) minmax(290px, 1fr);
+      gap: clamp(14px, 2vw, 22px);
+    }
+
+    .canvas-pane {
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      min-height: 0;
+    }
+
+    .canvas-card,
+    .info-pane {
+      position: relative;
+      overflow: hidden;
+      border-radius: 28px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .canvas-card {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 0;
+    }
+
+    .canvas-header {
+      padding: clamp(14px, 1.8vw, 18px) clamp(16px, 2vw, 22px) clamp(12px, 1.5vw, 14px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+      flex-wrap: wrap;
+      background:
+        radial-gradient(circle at top right, rgba(255, 255, 255, 0.08), transparent 24%),
+        linear-gradient(160deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)),
+        var(--panel);
+    }
+
+    .canvas-title {
+      margin: 0;
+      font-size: 1.55rem;
+      line-height: 1.1;
+      letter-spacing: 0.02em;
+      color: var(--text);
+    }
+
+    .canvas-subtitle {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+      max-width: 52ch;
+    }
+
+    .canvas-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .header-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 16px;
+      padding: 10px 14px;
+      text-decoration: none;
+      font-weight: 600;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .canvas-badge {
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--accent-2);
+      font-size: 0.8rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    #network {
+      flex: 1 1 auto;
+      min-height: 0;
+      touch-action: none;
+      overscroll-behavior: contain;
+      background:
+        radial-gradient(circle at 16% 18%, rgba(143, 203, 99, 0.08), transparent 18%),
+        radial-gradient(circle at 84% 78%, rgba(229, 161, 93, 0.08), transparent 22%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(246, 249, 253, 0.98)),
+        linear-gradient(90deg, rgba(162, 177, 205, 0.08) 1px, transparent 1px),
+        linear-gradient(rgba(162, 177, 205, 0.08) 1px, transparent 1px);
+      background-size: auto, auto, auto, 48px 48px, 48px 48px;
+    }
+
+    .info-pane {
+      background: var(--panel-strong);
+      border-left: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 22px 20px 28px;
+      height: 100%;
+      overflow-y: auto;
+    }
+
+    .info-kicker {
+      margin: 0 0 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 0.73rem;
+      color: var(--accent-2);
+      font-weight: 800;
+    }
+
+    .info-title {
+      margin: 0;
+      font-size: 1.5rem;
+      line-height: 1.1;
+      color: var(--text);
+    }
+
+    .info-lead {
+      margin: 10px 0 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .section {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .section h3 {
+      margin: 0 0 10px;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .stat-card {
+      padding: 12px 10px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      text-align: center;
+    }
+
+    .stat-card strong {
+      display: block;
+      font-size: 1.1rem;
+      color: var(--accent-2);
+    }
+
+    .stat-card span {
+      display: block;
+      margin-top: 4px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .tag-list,
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tag,
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #dce6f5;
+      font-size: 0.88rem;
+      line-height: 1.2;
+    }
+
+    .swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.15);
+      flex: 0 0 auto;
+    }
+
+    .meta {
+      margin-top: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #dce6f5;
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    .relationship-card {
+      margin-top: 18px;
+      padding: 16px;
+      border-radius: 18px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03)),
+        rgba(8, 12, 20, 0.24);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .relationship-card p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    @media (max-width: 1180px) {
+      .app {
+        grid-template-columns: minmax(0, 1.8fr) minmax(270px, 0.95fr);
+      }
+    }
+
+    @media (max-width: 980px) {
+      body {
+        overflow: auto;
+      }
+
+      .app {
+        width: min(100% - 16px, 1240px);
+        height: auto;
+        min-height: 0;
+        margin: 8px auto;
+        padding: 14px;
+        grid-template-columns: 1fr;
+      }
+
+      .canvas-card {
+        height: auto;
+        min-height: 0;
+      }
+
+      #network {
+        height: clamp(360px, 62dvh, 560px);
+        min-height: clamp(360px, 62dvh, 560px);
+      }
+
+      .info-pane {
+        height: auto;
+        border-left: 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .canvas-header {
+        align-items: flex-start;
+      }
+
+      .canvas-actions {
+        justify-content: flex-start;
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .app {
+        width: calc(100% - 12px);
+        margin: 6px auto;
+        padding: 10px;
+        border-radius: 20px;
+      }
+
+      .canvas-card,
+      .info-pane {
+        border-radius: 20px;
+      }
+
+      .canvas-title,
+      .info-title {
+        font-size: 1.28rem;
+      }
+
+      .canvas-subtitle,
+      .info-lead {
+        font-size: 0.9rem;
+      }
+
+      .header-link,
+      .canvas-badge {
+        padding: 9px 12px;
+        font-size: 0.76rem;
+      }
+
+      #network {
+        height: clamp(320px, 58dvh, 460px);
+        min-height: clamp(320px, 58dvh, 460px);
+      }
+
+      .info-pane {
+        padding: 18px 16px 22px;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <main class="canvas-pane">
+      <section class="canvas-card">
+        <div class="canvas-header">
+          <div>
+            <h1 class="canvas-title">Zerg Tech Tree</h1>
+            <p class="canvas-subtitle">
+              Drag nodes, zoom the swarm map, and click any node or arrow for details.
+            </p>
+          </div>
+          <div class="canvas-actions">
+            <a class="header-link" href="index.html">Back to Wiki</a>
+            <div class="canvas-badge">Vis Network</div>
+          </div>
+        </div>
+        <div id="network"></div>
+      </section>
+    </main>
+
+    <aside class="info-pane" id="info-panel"></aside>
+  </div>
+
+  <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+  <script>
+    const rawNodes = [
+      {
+        name: "Minerals",
+        label: "Minerals",
+        group: "resource",
+        x: 0,
+        y: -340,
+        details: {
+          description: "Harvested by Drones from mineral patches.",
+          cost: { minerals: null, gas: null, supply: null },
+          usedFor: ["Core resource for units, structures, and morphs."]
+        }
+      },
+      {
+        name: "Vespene Gas",
+        label: "Vespene\nGas",
+        group: "resource",
+        x: 0,
+        y: -160,
+        details: {
+          description: "Harvested by Drones from Extractors built on Vespene Geysers.",
+          cost: { minerals: null, gas: null, supply: null },
+          requires: ["Extractor", "Drone"]
+        }
+      },
+      {
+        name: "Supply",
+        label: "Supply",
+        group: "resource",
+        x: 0,
+        y: 20,
+        details: {
+          description: "Determines the maximum number of units you can field. Provided by Hatcheries and Overlords.",
+          cost: { minerals: null, gas: null, supply: null },
+          providedBy: ["Hatchery", "Overlord"]
+        }
+      },
+      {
+        name: "Creep",
+        label: "Creep",
+        group: "mechanic",
+        x: 0,
+        y: 240,
+        details: {
+          description: "Biomatter generated by Hatcheries and Creep Tumors. Zerg buildings (except Extractors and Hatcheries) must be built on Creep. Zerg units move faster on Creep.",
+          cost: { minerals: null, gas: null, supply: null },
+          producedBy: ["Hatchery", "Queen"],
+          requiredFor: [
+            "Spawning Pool",
+            "Evolution Chamber",
+            "Spine Crawler",
+            "Spore Crawler",
+            "Roach Warren",
+            "Baneling Nest",
+            "Hydralisk Den",
+            "Spire",
+            "Infestation Pit",
+            "Nydus Network",
+            "Ultralisk Cavern"
+          ]
+        }
+      },
+      {
+        name: "Hatchery",
+        label: "Hatchery",
+        group: "tier1",
+        x: 340,
+        y: -260,
+        details: {
+          description: "Primary town hall. Produces Larvae, Queens, and spreads Creep. Unlocks Spawning Pool, Extractor, Evolution Chamber. Upgrades to Lair.",
+          cost: { minerals: 300, gas: 0, supply: 0 },
+          produces: ["Larva", "Queen"],
+          unlocks: ["Spawning Pool", "Extractor", "Evolution Chamber"],
+          morphsTo: ["Lair"],
+          provides: ["Supply"],
+          spreads: ["Creep"]
+        }
+      },
+      {
+        name: "Larva",
+        label: "Larva",
+        group: "mechanic",
+        x: 340,
+        y: -20,
+        details: {
+          description: "Automatically spawns at Hatcheries, Lairs, and Hives. Morphs into almost all Zerg units.",
+          cost: { minerals: null, gas: null, supply: null },
+          requires: ["Hatchery"],
+          producedBy: ["Hatchery", "Lair", "Hive", "Queen"],
+          morphsTo: [
+            "Drone",
+            "Overlord",
+            "Zergling",
+            "Roach",
+            "Hydralisk",
+            "Mutalisk",
+            "Corruptor",
+            "Infestor",
+            "Swarm Host",
+            "Ultralisk",
+            "Viper"
+          ]
+        }
+      },
+      {
+        name: "Drone",
+        label: "Drone",
+        group: "worker",
+        x: 340,
+        y: 240,
+        details: {
+          description: "Basic worker unit. Harvests resources and morphs into all Zerg structures.",
+          cost: { minerals: 50, gas: 0, supply: 1 },
+          requires: ["Larva", "Hatchery"],
+          morphsFrom: ["Larva"],
+          harvests: ["Minerals", "Vespene Gas"],
+          morphsTo: [
+            "Hatchery",
+            "Extractor",
+            "Spawning Pool",
+            "Evolution Chamber",
+            "Spine Crawler",
+            "Spore Crawler",
+            "Roach Warren",
+            "Baneling Nest",
+            "Hydralisk Den",
+            "Spire",
+            "Infestation Pit",
+            "Nydus Network",
+            "Ultralisk Cavern"
+          ]
+        }
+      },
+      {
+        name: "Overlord",
+        label: "Overlord",
+        group: "tier1",
+        x: 700,
+        y: -380,
+        details: {
+          description: "Provides 8 Supply. Slowly flies and provides vision.",
+          cost: { minerals: 100, gas: 0, supply: 0 },
+          requires: ["Larva", "Hatchery"],
+          morphsFrom: ["Larva"],
+          provides: ["Supply"],
+          morphsTo: ["Overseer"]
+        }
+      },
+      {
+        name: "Extractor",
+        label: "Extractor",
+        group: "tier1",
+        x: 700,
+        y: -200,
+        details: {
+          description: "Built on Vespene Geysers to allow Drones to harvest Vespene Gas.",
+          cost: { minerals: 25, gas: 0, supply: 0 },
+          requires: ["Drone"],
+          morphsFrom: ["Drone"],
+          unlocks: ["Vespene Gas harvesting"]
+        }
+      },
+      {
+        name: "Spawning Pool",
+        label: "Spawning\nPool",
+        group: "tier1",
+        x: 700,
+        y: -20,
+        details: {
+          description: "Primary tech building. Unlocks Zerglings, Queens, Roach Warren, Baneling Nest, Spine Crawler, Spore Crawler. Requires: Drone, Hatchery.",
+          cost: { minerals: 200, gas: 0, supply: 0 },
+          requires: ["Drone", "Hatchery"],
+          morphsFrom: ["Drone"],
+          unlocks: ["Zergling", "Queen", "Roach Warren", "Baneling Nest", "Spine Crawler", "Spore Crawler", "Lair"]
+        }
+      },
+      {
+        name: "Evolution Chamber",
+        label: "Evolution\nChamber",
+        group: "tier15",
+        x: 700,
+        y: 180,
+        details: {
+          description: "Unlocks ground unit upgrades and Spore Crawlers.",
+          cost: { minerals: 75, gas: 0, supply: 0 },
+          requires: ["Drone", "Hatchery"],
+          morphsFrom: ["Drone"],
+          unlocks: ["Ground Unit Upgrades", "Spore Crawler"]
+        }
+      },
+      {
+        name: "Queen",
+        label: "Queen",
+        group: "tier1",
+        x: 1080,
+        y: -260,
+        details: {
+          description: "Base defense and macro unit. Uses Spawn Larva, Spawn Creep Tumor, and Transfuse.",
+          cost: { minerals: 150, gas: 0, supply: 2 },
+          requires: ["Hatchery", "Spawning Pool"],
+          producedBy: ["Hatchery"],
+          produces: ["Larva"],
+          spreads: ["Creep"],
+          abilities: ["Spawn Larva", "Spawn Creep Tumor", "Transfuse"]
+        }
+      },
+      {
+        name: "Zergling",
+        label: "Zergling",
+        group: "tier1",
+        x: 1080,
+        y: -80,
+        details: {
+          description: "Fast melee unit. Hatches 2 per egg.",
+          cost: { minerals: 50, gas: 0, supply: 1 },
+          requires: ["Larva", "Spawning Pool"],
+          morphsFrom: ["Larva"],
+          morphsTo: ["Baneling"]
+        }
+      },
+      {
+        name: "Roach Warren",
+        label: "Roach\nWarren",
+        group: "tier15",
+        x: 1080,
+        y: 100,
+        details: {
+          description: "Unlocks Roach production.",
+          cost: { minerals: 150, gas: 0, supply: 0 },
+          requires: ["Drone", "Spawning Pool"],
+          morphsFrom: ["Drone"],
+          unlocks: ["Roach"]
+        }
+      },
+      {
+        name: "Baneling Nest",
+        label: "Baneling\nNest",
+        group: "tier15",
+        x: 1080,
+        y: 300,
+        details: {
+          description: "Unlocks Baneling morph from Zerglings.",
+          cost: { minerals: 100, gas: 50, supply: 0 },
+          requires: ["Drone", "Spawning Pool"],
+          morphsFrom: ["Drone"],
+          unlocks: ["Baneling"]
+        }
+      },
+      {
+        name: "Spine Crawler",
+        label: "Spine\nCrawler",
+        group: "tier15",
+        x: 1080,
+        y: 500,
+        details: {
+          description: "Anti-ground defensive structure. Can uproot and move.",
+          cost: { minerals: 100, gas: 0, supply: 0 },
+          requires: ["Drone", "Spawning Pool"],
+          morphsFrom: ["Drone"]
+        }
+      },
+      {
+        name: "Spore Crawler",
+        label: "Spore\nCrawler",
+        group: "tier15",
+        x: 1080,
+        y: 680,
+        details: {
+          description: "Anti-air defensive structure. Acts as a detector. Can uproot and move.",
+          cost: { minerals: 75, gas: 0, supply: 0 },
+          requires: ["Drone", "Spawning Pool"],
+          morphsFrom: ["Drone"]
+        }
+      },
+      {
+        name: "Lair",
+        label: "Lair",
+        group: "tier2",
+        x: 1460,
+        y: -280,
+        details: {
+          description: "Upgraded town hall. Unlocks Hydralisk Den, Spire, Infestation Pit, Nydus Network, and Overseer morph.",
+          cost: { minerals: 150, gas: 100, supply: 0 },
+          requires: ["Hatchery", "Spawning Pool"],
+          morphsFrom: ["Hatchery"],
+          produces: ["Larva"],
+          unlocks: ["Hydralisk Den", "Spire", "Infestation Pit", "Nydus Network", "Overseer", "Lurker Den"],
+          morphsTo: ["Hive"]
+        }
+      },
+      {
+        name: "Roach",
+        label: "Roach",
+        group: "tier15",
+        x: 1460,
+        y: 100,
+        details: {
+          description: "Armored assault unit with rapid regeneration when burrowed.",
+          cost: { minerals: 75, gas: 25, supply: 2 },
+          requires: ["Larva", "Roach Warren"],
+          morphsFrom: ["Larva"]
+        }
+      },
+      {
+        name: "Baneling",
+        label: "Baneling",
+        group: "tier15",
+        x: 1460,
+        y: 300,
+        details: {
+          description: "Suicide bomber unit that deals splash damage. Morphs from Zergling.",
+          cost: { minerals: 25, gas: 25, supply: null },
+          requires: ["Zergling", "Baneling Nest"],
+          morphsFrom: ["Zergling"]
+        }
+      },
+      {
+        name: "Overseer",
+        label: "Overseer",
+        group: "tier2",
+        x: 1840,
+        y: -400,
+        details: {
+          description: "Flying detector. Morphs from Overlord.",
+          cost: { minerals: 50, gas: 50, supply: 0 },
+          requires: ["Overlord", "Lair"],
+          morphsFrom: ["Overlord"]
+        }
+      },
+      {
+        name: "Hydralisk Den",
+        label: "Hydralisk\nDen",
+        group: "tier2",
+        x: 1840,
+        y: -180,
+        details: {
+          description: "Unlocks Hydralisk production and Lurker Den morph.",
+          cost: { minerals: 100, gas: 100, supply: 0 },
+          requires: ["Drone", "Lair"],
+          morphsFrom: ["Drone"],
+          unlocks: ["Hydralisk", "Lurker Den"],
+          morphsTo: ["Lurker Den"]
+        }
+      },
+      {
+        name: "Spire",
+        label: "Spire",
+        group: "tier2",
+        x: 1840,
+        y: 40,
+        details: {
+          description: "Unlocks Mutalisk and Corruptor production, plus air upgrades. Upgrades to Greater Spire.",
+          cost: { minerals: 200, gas: 200, supply: 0 },
+          requires: ["Drone", "Lair"],
+          morphsFrom: ["Drone"],
+          unlocks: ["Mutalisk", "Corruptor", "Air Upgrades"],
+          morphsTo: ["Greater Spire"]
+        }
+      },
+      {
+        name: "Infestation Pit",
+        label: "Infestation\nPit",
+        group: "tier2",
+        x: 1840,
+        y: 260,
+        details: {
+          description: "Unlocks Infestor, Swarm Host, and Hive upgrade.",
+          cost: { minerals: 100, gas: 100, supply: 0 },
+          requires: ["Drone", "Lair"],
+          morphsFrom: ["Drone"],
+          unlocks: ["Infestor", "Swarm Host", "Hive"]
+        }
+      },
+      {
+        name: "Nydus Network",
+        label: "Nydus\nNetwork",
+        group: "tier2",
+        x: 1840,
+        y: 480,
+        details: {
+          description: "Unlocks Nydus Worms for global map transport.",
+          cost: { minerals: 150, gas: 150, supply: 0 },
+          requires: ["Drone", "Lair"],
+          morphsFrom: ["Drone"],
+          unlocks: ["Nydus Worms"]
+        }
+      },
+      {
+        name: "Hydralisk",
+        label: "Hydralisk",
+        group: "tier2",
+        x: 2220,
+        y: -180,
+        details: {
+          description: "Ranged anti-ground and anti-air unit.",
+          cost: { minerals: 100, gas: 50, supply: 2 },
+          requires: ["Larva", "Hydralisk Den"],
+          morphsFrom: ["Larva"],
+          morphsTo: ["Lurker"]
+        }
+      },
+      {
+        name: "Mutalisk",
+        label: "Mutalisk",
+        group: "tier2",
+        x: 2220,
+        y: 20,
+        details: {
+          description: "Fast flying harassment unit with a bouncing attack.",
+          cost: { minerals: 100, gas: 100, supply: 2 },
+          requires: ["Larva", "Spire"],
+          morphsFrom: ["Larva"]
+        }
+      },
+      {
+        name: "Corruptor",
+        label: "Corruptor",
+        group: "tier2",
+        x: 2220,
+        y: 220,
+        details: {
+          description: "Anti-air flyer. Can use Caustic Spray on buildings.",
+          cost: { minerals: 150, gas: 100, supply: 2 },
+          requires: ["Larva", "Spire"],
+          morphsFrom: ["Larva"],
+          morphsTo: ["Brood Lord"]
+        }
+      },
+      {
+        name: "Infestor",
+        label: "Infestor",
+        group: "tier2",
+        x: 2220,
+        y: 420,
+        details: {
+          description: "Ground caster. Uses Fungal Growth, Neural Parasite, and Microbial Shroud.",
+          cost: { minerals: 100, gas: 150, supply: 2 },
+          requires: ["Larva", "Infestation Pit"],
+          morphsFrom: ["Larva"],
+          abilities: ["Fungal Growth", "Neural Parasite", "Microbial Shroud"]
+        }
+      },
+      {
+        name: "Swarm Host",
+        label: "Swarm\nHost",
+        group: "tier2",
+        x: 2220,
+        y: 620,
+        details: {
+          description: "Siege unit that spawns free, temporary flying Locusts.",
+          cost: { minerals: 100, gas: 75, supply: 3 },
+          requires: ["Larva", "Infestation Pit"],
+          morphsFrom: ["Larva"],
+          spawns: ["Temporary flying Locusts"]
+        }
+      },
+      {
+        name: "Lurker Den",
+        label: "Lurker\nDen",
+        group: "tier25",
+        x: 2600,
+        y: -180,
+        details: {
+          description: "Unlocks Lurker morph from Hydralisks. Morphs from Hydralisk Den.",
+          cost: { minerals: 100, gas: 150, supply: 0 },
+          requires: ["Hydralisk Den", "Lair"],
+          morphsFrom: ["Hydralisk Den"],
+          unlocks: ["Lurker"]
+        }
+      },
+      {
+        name: "Greater Spire",
+        label: "Greater\nSpire",
+        group: "tier3",
+        x: 2600,
+        y: 40,
+        details: {
+          description: "Unlocks Brood Lord morph from Corruptors. Morphs from Spire.",
+          cost: { minerals: 100, gas: 150, supply: 0 },
+          requires: ["Spire", "Hive"],
+          morphsFrom: ["Spire"],
+          unlocks: ["Brood Lord"]
+        }
+      },
+      {
+        name: "Hive",
+        label: "Hive",
+        group: "tier3",
+        x: 2600,
+        y: 300,
+        details: {
+          description: "Ultimate town hall. Unlocks Ultralisk Cavern, Greater Spire, and Viper.",
+          cost: { minerals: 200, gas: 150, supply: 0 },
+          requires: ["Lair", "Infestation Pit"],
+          morphsFrom: ["Lair"],
+          produces: ["Larva"],
+          unlocks: ["Ultralisk Cavern", "Greater Spire", "Viper"]
+        }
+      },
+      {
+        name: "Lurker",
+        label: "Lurker",
+        group: "tier25",
+        x: 2980,
+        y: -80,
+        details: {
+          description: "Heavy siege unit. Must burrow to attack, dealing linear splash damage. Morphs from Hydralisk.",
+          cost: { minerals: 50, gas: 100, supply: 3 },
+          requires: ["Hydralisk", "Lurker Den"],
+          morphsFrom: ["Hydralisk"]
+        }
+      },
+      {
+        name: "Brood Lord",
+        label: "Brood\nLord",
+        group: "tier3",
+        x: 2980,
+        y: 120,
+        details: {
+          description: "Massive flying siege unit that shoots Broodlings. Morphs from Corruptor.",
+          cost: { minerals: 150, gas: 150, supply: 4 },
+          requires: ["Corruptor", "Greater Spire"],
+          morphsFrom: ["Corruptor"]
+        }
+      },
+      {
+        name: "Ultralisk Cavern",
+        label: "Ultralisk\nCavern",
+        group: "tier3",
+        x: 2980,
+        y: 340,
+        details: {
+          description: "Unlocks Ultralisk production.",
+          cost: { minerals: 150, gas: 200, supply: 0 },
+          requires: ["Drone", "Hive"],
+          morphsFrom: ["Drone"],
+          unlocks: ["Ultralisk"]
+        }
+      },
+      {
+        name: "Viper",
+        label: "Viper",
+        group: "tier3",
+        x: 2980,
+        y: 560,
+        details: {
+          description: "Flying caster. Uses Abduct, Blinding Cloud, and Parasitic Bomb.",
+          cost: { minerals: 100, gas: 200, supply: 3 },
+          requires: ["Larva", "Hive"],
+          morphsFrom: ["Larva"],
+          abilities: ["Abduct", "Blinding Cloud", "Parasitic Bomb"]
+        }
+      },
+      {
+        name: "Ultralisk",
+        label: "Ultralisk",
+        group: "tier3",
+        x: 3360,
+        y: 340,
+        details: {
+          description: "Massive armored frontline melee unit.",
+          cost: { minerals: 300, gas: 200, supply: 6 },
+          requires: ["Larva", "Ultralisk Cavern"],
+          morphsFrom: ["Larva"]
+        }
+      }
+    ];
+
+    const rawRelations = [
+      {
+        fromName: "Drone",
+        toName: "Minerals",
+        type: "Harvests",
+        description: "Drones harvest Minerals from mineral patches."
+      },
+      {
+        fromName: "Drone",
+        toName: "Vespene Gas",
+        type: "Harvests",
+        description: "Drones harvest Vespene Gas from completed Extractors."
+      },
+      {
+        fromName: "Extractor",
+        toName: "Vespene Gas",
+        type: "Harvests",
+        description: "Extractor enables Drone harvesting on a Vespene Geyser."
+      },
+      {
+        fromName: "Hatchery",
+        toName: "Supply",
+        type: "Provides",
+        description: "Hatchery contributes to your supply cap."
+      },
+      {
+        fromName: "Overlord",
+        toName: "Supply",
+        type: "Provides",
+        description: "Overlord provides 8 Supply."
+      },
+      {
+        fromName: "Hatchery",
+        toName: "Creep",
+        type: "Spreads",
+        description: "Hatchery spreads Creep around the main Zerg base."
+      },
+      {
+        fromName: "Queen",
+        toName: "Creep",
+        type: "Spreads",
+        description: "Queen expands Creep coverage by placing Creep Tumors."
+      },
+      {
+        fromName: "Hatchery",
+        toName: "Larva",
+        type: "Produces",
+        description: "Hatchery generates Larva over time."
+      },
+      {
+        fromName: "Lair",
+        toName: "Larva",
+        type: "Produces",
+        description: "Lair continues Larva generation after the Hatchery upgrade."
+      },
+      {
+        fromName: "Hive",
+        toName: "Larva",
+        type: "Produces",
+        description: "Hive continues Larva generation at the highest town hall tier."
+      },
+      {
+        fromName: "Queen",
+        toName: "Larva",
+        type: "Produces",
+        description: "Queen accelerates Larva production with Spawn Larva."
+      },
+      {
+        fromName: "Larva",
+        toName: "Drone",
+        type: "Morphs To",
+        description: "Larva morphs into a Drone."
+      },
+      {
+        fromName: "Larva",
+        toName: "Overlord",
+        type: "Morphs To",
+        description: "Larva morphs into an Overlord."
+      },
+      {
+        fromName: "Larva",
+        toName: "Zergling",
+        type: "Morphs To",
+        description: "Larva morphs into a Zergling egg, hatching two Zerglings."
+      },
+      {
+        fromName: "Larva",
+        toName: "Roach",
+        type: "Morphs To",
+        description: "Larva morphs into a Roach."
+      },
+      {
+        fromName: "Larva",
+        toName: "Hydralisk",
+        type: "Morphs To",
+        description: "Larva morphs into a Hydralisk."
+      },
+      {
+        fromName: "Larva",
+        toName: "Mutalisk",
+        type: "Morphs To",
+        description: "Larva morphs into a Mutalisk."
+      },
+      {
+        fromName: "Larva",
+        toName: "Corruptor",
+        type: "Morphs To",
+        description: "Larva morphs into a Corruptor."
+      },
+      {
+        fromName: "Larva",
+        toName: "Infestor",
+        type: "Morphs To",
+        description: "Larva morphs into an Infestor."
+      },
+      {
+        fromName: "Larva",
+        toName: "Swarm Host",
+        type: "Morphs To",
+        description: "Larva morphs into a Swarm Host."
+      },
+      {
+        fromName: "Larva",
+        toName: "Ultralisk",
+        type: "Morphs To",
+        description: "Larva morphs into an Ultralisk."
+      },
+      {
+        fromName: "Larva",
+        toName: "Viper",
+        type: "Morphs To",
+        description: "Larva morphs into a Viper."
+      },
+      {
+        fromName: "Drone",
+        toName: "Hatchery",
+        type: "Morphs To",
+        description: "Drone morphs into a Hatchery to establish a new base."
+      },
+      {
+        fromName: "Drone",
+        toName: "Extractor",
+        type: "Morphs To",
+        description: "Drone morphs into an Extractor on a Vespene Geyser."
+      },
+      {
+        fromName: "Drone",
+        toName: "Spawning Pool",
+        type: "Morphs To",
+        description: "Drone morphs into a Spawning Pool."
+      },
+      {
+        fromName: "Drone",
+        toName: "Evolution Chamber",
+        type: "Morphs To",
+        description: "Drone morphs into an Evolution Chamber."
+      },
+      {
+        fromName: "Drone",
+        toName: "Spine Crawler",
+        type: "Morphs To",
+        description: "Drone morphs into a Spine Crawler."
+      },
+      {
+        fromName: "Drone",
+        toName: "Spore Crawler",
+        type: "Morphs To",
+        description: "Drone morphs into a Spore Crawler."
+      },
+      {
+        fromName: "Drone",
+        toName: "Roach Warren",
+        type: "Morphs To",
+        description: "Drone morphs into a Roach Warren."
+      },
+      {
+        fromName: "Drone",
+        toName: "Baneling Nest",
+        type: "Morphs To",
+        description: "Drone morphs into a Baneling Nest."
+      },
+      {
+        fromName: "Drone",
+        toName: "Hydralisk Den",
+        type: "Morphs To",
+        description: "Drone morphs into a Hydralisk Den."
+      },
+      {
+        fromName: "Drone",
+        toName: "Spire",
+        type: "Morphs To",
+        description: "Drone morphs into a Spire."
+      },
+      {
+        fromName: "Drone",
+        toName: "Infestation Pit",
+        type: "Morphs To",
+        description: "Drone morphs into an Infestation Pit."
+      },
+      {
+        fromName: "Drone",
+        toName: "Nydus Network",
+        type: "Morphs To",
+        description: "Drone morphs into a Nydus Network."
+      },
+      {
+        fromName: "Drone",
+        toName: "Ultralisk Cavern",
+        type: "Morphs To",
+        description: "Drone morphs into an Ultralisk Cavern."
+      },
+      {
+        fromName: "Hatchery",
+        toName: "Extractor",
+        type: "Unlocks",
+        description: "Hatchery unlocks the Extractor."
+      },
+      {
+        fromName: "Hatchery",
+        toName: "Spawning Pool",
+        type: "Unlocks",
+        description: "Hatchery unlocks the Spawning Pool."
+      },
+      {
+        fromName: "Hatchery",
+        toName: "Evolution Chamber",
+        type: "Unlocks",
+        description: "Hatchery unlocks the Evolution Chamber."
+      },
+      {
+        fromName: "Hatchery",
+        toName: "Queen",
+        type: "Produces",
+        description: "Hatchery trains Queens after the Spawning Pool is complete."
+      },
+      {
+        fromName: "Spawning Pool",
+        toName: "Zergling",
+        type: "Unlocks",
+        description: "Spawning Pool unlocks Zergling morphs from Larva."
+      },
+      {
+        fromName: "Spawning Pool",
+        toName: "Queen",
+        type: "Unlocks",
+        description: "Spawning Pool unlocks Queen production at Hatcheries."
+      },
+      {
+        fromName: "Spawning Pool",
+        toName: "Roach Warren",
+        type: "Unlocks",
+        description: "Spawning Pool unlocks the Roach Warren."
+      },
+      {
+        fromName: "Spawning Pool",
+        toName: "Baneling Nest",
+        type: "Unlocks",
+        description: "Spawning Pool unlocks the Baneling Nest."
+      },
+      {
+        fromName: "Spawning Pool",
+        toName: "Spine Crawler",
+        type: "Unlocks",
+        description: "Spawning Pool unlocks the Spine Crawler."
+      },
+      {
+        fromName: "Spawning Pool",
+        toName: "Spore Crawler",
+        type: "Unlocks",
+        description: "Spawning Pool unlocks the Spore Crawler."
+      },
+      {
+        fromName: "Evolution Chamber",
+        toName: "Spore Crawler",
+        type: "Unlocks",
+        description: "Evolution Chamber unlocks the Spore Crawler and related ground upgrades."
+      },
+      {
+        fromName: "Roach Warren",
+        toName: "Roach",
+        type: "Unlocks",
+        description: "Roach Warren unlocks Roach morphs from Larva."
+      },
+      {
+        fromName: "Baneling Nest",
+        toName: "Baneling",
+        type: "Unlocks",
+        description: "Baneling Nest unlocks Baneling morphs from Zerglings."
+      },
+      {
+        fromName: "Zergling",
+        toName: "Baneling",
+        type: "Morphs To",
+        description: "Zergling morphs into a Baneling."
+      },
+      {
+        fromName: "Hatchery",
+        toName: "Lair",
+        type: "Morphs To",
+        description: "Hatchery morphs into a Lair after the Spawning Pool requirement is met."
+      },
+      {
+        fromName: "Spawning Pool",
+        toName: "Lair",
+        type: "Unlocks",
+        description: "Spawning Pool is required before morphing a Hatchery into a Lair."
+      },
+      {
+        fromName: "Lair",
+        toName: "Hydralisk Den",
+        type: "Unlocks",
+        description: "Lair unlocks the Hydralisk Den."
+      },
+      {
+        fromName: "Lair",
+        toName: "Spire",
+        type: "Unlocks",
+        description: "Lair unlocks the Spire."
+      },
+      {
+        fromName: "Lair",
+        toName: "Infestation Pit",
+        type: "Unlocks",
+        description: "Lair unlocks the Infestation Pit."
+      },
+      {
+        fromName: "Lair",
+        toName: "Nydus Network",
+        type: "Unlocks",
+        description: "Lair unlocks the Nydus Network."
+      },
+      {
+        fromName: "Lair",
+        toName: "Overseer",
+        type: "Unlocks",
+        description: "Lair unlocks Overseer morphs from Overlords."
+      },
+      {
+        fromName: "Hydralisk Den",
+        toName: "Hydralisk",
+        type: "Unlocks",
+        description: "Hydralisk Den unlocks Hydralisk morphs from Larva."
+      },
+      {
+        fromName: "Spire",
+        toName: "Mutalisk",
+        type: "Unlocks",
+        description: "Spire unlocks Mutalisk morphs from Larva."
+      },
+      {
+        fromName: "Spire",
+        toName: "Corruptor",
+        type: "Unlocks",
+        description: "Spire unlocks Corruptor morphs from Larva."
+      },
+      {
+        fromName: "Infestation Pit",
+        toName: "Infestor",
+        type: "Unlocks",
+        description: "Infestation Pit unlocks Infestor morphs from Larva."
+      },
+      {
+        fromName: "Infestation Pit",
+        toName: "Swarm Host",
+        type: "Unlocks",
+        description: "Infestation Pit unlocks Swarm Host morphs from Larva."
+      },
+      {
+        fromName: "Overlord",
+        toName: "Overseer",
+        type: "Morphs To",
+        description: "Overlord morphs into an Overseer."
+      },
+      {
+        fromName: "Hydralisk Den",
+        toName: "Lurker Den",
+        type: "Morphs To",
+        description: "Hydralisk Den morphs into a Lurker Den."
+      },
+      {
+        fromName: "Lair",
+        toName: "Lurker Den",
+        type: "Unlocks",
+        description: "Lair is required before morphing the Hydralisk Den into a Lurker Den."
+      },
+      {
+        fromName: "Hydralisk",
+        toName: "Lurker",
+        type: "Morphs To",
+        description: "Hydralisk morphs into a Lurker."
+      },
+      {
+        fromName: "Lurker Den",
+        toName: "Lurker",
+        type: "Unlocks",
+        description: "Lurker Den unlocks Lurker morphs from Hydralisks."
+      },
+      {
+        fromName: "Lair",
+        toName: "Hive",
+        type: "Morphs To",
+        description: "Lair morphs into a Hive once the Infestation Pit requirement is met."
+      },
+      {
+        fromName: "Infestation Pit",
+        toName: "Hive",
+        type: "Unlocks",
+        description: "Infestation Pit is required before morphing a Lair into a Hive."
+      },
+      {
+        fromName: "Hive",
+        toName: "Ultralisk Cavern",
+        type: "Unlocks",
+        description: "Hive unlocks the Ultralisk Cavern."
+      },
+      {
+        fromName: "Hive",
+        toName: "Greater Spire",
+        type: "Unlocks",
+        description: "Hive unlocks the Greater Spire morph."
+      },
+      {
+        fromName: "Hive",
+        toName: "Viper",
+        type: "Unlocks",
+        description: "Hive unlocks Viper morphs from Larva."
+      },
+      {
+        fromName: "Spire",
+        toName: "Greater Spire",
+        type: "Morphs To",
+        description: "Spire morphs into a Greater Spire."
+      },
+      {
+        fromName: "Ultralisk Cavern",
+        toName: "Ultralisk",
+        type: "Unlocks",
+        description: "Ultralisk Cavern unlocks Ultralisk morphs from Larva."
+      },
+      {
+        fromName: "Greater Spire",
+        toName: "Brood Lord",
+        type: "Unlocks",
+        description: "Greater Spire unlocks Brood Lord morphs from Corruptors."
+      },
+      {
+        fromName: "Corruptor",
+        toName: "Brood Lord",
+        type: "Morphs To",
+        description: "Corruptor morphs into a Brood Lord."
+      }
+    ];
+
+    const groupStyles = {
+      resource: {
+        shape: "diamond",
+        color: { background: "#e7c06b", border: "#a97b1f", highlight: { background: "#f1d48f", border: "#7b550d" } }
+      },
+      mechanic: {
+        shape: "hexagon",
+        color: { background: "#b9d68a", border: "#6d8e37", highlight: { background: "#cde7a5", border: "#4f6b22" } }
+      },
+      worker: {
+        shape: "ellipse",
+        color: { background: "#8fb86f", border: "#4c7a33", highlight: { background: "#a7cd86", border: "#34571f" } }
+      },
+      tier1: {
+        shape: "box",
+        color: { background: "#7db38c", border: "#3d6c4a", highlight: { background: "#9cc7a8", border: "#284933" } }
+      },
+      tier15: {
+        shape: "box",
+        color: { background: "#d7a06b", border: "#93582a", highlight: { background: "#e7b482", border: "#6e3d15" } }
+      },
+      tier2: {
+        shape: "box",
+        color: { background: "#ba8ab7", border: "#72486d", highlight: { background: "#cba0c8", border: "#542f50" } }
+      },
+      tier25: {
+        shape: "box",
+        color: { background: "#9c8fc9", border: "#5a4f8f", highlight: { background: "#b0a4d9", border: "#3c3369" } }
+      },
+      tier3: {
+        shape: "box",
+        color: { background: "#d07f7f", border: "#893f3f", highlight: { background: "#e29696", border: "#662626" } }
+      }
+    };
+
+    const edgeStyles = {
+      Produces: { color: "#3d7a40", width: 2.6 },
+      Unlocks: { color: "#376e92", width: 2.4 },
+      "Morphs To": { color: "#8b54b4", width: 2.5, dashes: [8, 4] },
+      Harvests: { color: "#ab7a17", width: 2.4, dashes: [6, 4] },
+      Provides: { color: "#477d99", width: 2.2, dashes: [2, 5] },
+      Spreads: { color: "#6c8c2f", width: 2.2, dashes: [4, 4] }
+    };
+
+    const groupLabels = {
+      resource: "Resource",
+      mechanic: "Base Mechanic",
+      worker: "Worker",
+      tier1: "Tier 1",
+      tier15: "Tier 1.5",
+      tier2: "Tier 2",
+      tier25: "Tier 2.5",
+      tier3: "Tier 3"
+    };
+
+    const infoPanel = document.getElementById("info-panel");
+
+    const nameToId = Object.fromEntries(rawNodes.map((node, index) => [node.name, index + 1]));
+    const nodesById = Object.fromEntries(rawNodes.map((node, index) => [index + 1, node]));
+
+    const visNodes = new vis.DataSet(
+      rawNodes.map((node, index) => ({
+        id: index + 1,
+        label: node.label,
+        group: node.group,
+        x: node.x,
+        y: node.y,
+        title: node.name,
+        physics: false,
+        fixed: {
+          x: true,
+          y: true
+        },
+        font: {
+          color: "#152218",
+          face: "Avenir Next, Segoe UI, sans-serif",
+          size: 16,
+          bold: {
+            color: "#152218",
+            face: "Avenir Next, Segoe UI, sans-serif",
+            size: 16
+          }
+        },
+        margin: 14
+      }))
+    );
+
+    const visEdges = new vis.DataSet(
+      rawRelations.map((relation, index) => {
+        const style = edgeStyles[relation.type] || { color: "#5c7460", width: 2 };
+        return {
+          id: index + 1,
+          from: nameToId[relation.fromName],
+          to: nameToId[relation.toName],
+          arrows: "to",
+          color: { color: style.color, highlight: style.color, hover: style.color },
+          width: style.width,
+          dashes: style.dashes || false,
+          title: relation.type + ": " + relation.description,
+          relationType: relation.type,
+          description: relation.description,
+          fromName: relation.fromName,
+          toName: relation.toName,
+          smooth: false
+        };
+      })
+    );
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function formatCostValue(value) {
+      return value === null || value === undefined ? "N/A" : String(value);
+    }
+
+    function renderTags(items) {
+      return '<div class="tag-list">' + items.map((item) => '<span class="tag">' + escapeHtml(item) + "</span>").join("") + "</div>";
+    }
+
+    function renderSection(title, items) {
+      if (!items || !items.length) {
+        return "";
+      }
+      return '<section class="section"><h3>' + escapeHtml(title) + "</h3>" + renderTags(items) + "</section>";
+    }
+
+    function renderLegend() {
+      const legendItems = [
+        ["resource", "Resource"],
+        ["mechanic", "Base Mechanic"],
+        ["worker", "Worker"],
+        ["tier1", "Tier 1"],
+        ["tier15", "Tier 1.5"],
+        ["tier2", "Tier 2"],
+        ["tier25", "Tier 2.5"],
+        ["tier3", "Tier 3"]
+      ];
+
+      return (
+        '<section class="section"><h3>Legend</h3><div class="legend">' +
+        legendItems
+          .map(([group, label]) => {
+            const swatch = groupStyles[group].color.background;
+            return '<span class="legend-item"><span class="swatch" style="background:' + swatch + ';"></span>' + escapeHtml(label) + "</span>";
+          })
+          .join("") +
+        "</div></section>"
+      );
+    }
+
+    function renderDefaultPanel() {
+      infoPanel.innerHTML = [
+        '<p class="info-kicker">Info Panel</p>',
+        '<h2 class="info-title">Zerg Production Map</h2>',
+        '<p class="info-lead">Select a node to inspect its description, costs, morph chains, requirements, and unlocked tech. Select an edge to read the exact relationship between two Zerg tech nodes.</p>',
+        '<div class="meta">Tip: scroll to zoom, drag the canvas to pan, drag nodes to rearrange.</div>',
+        renderLegend(),
+        '<section class="section"><h3>Swarm Logic</h3><p class="info-lead">This version emphasizes Zerg mechanics: units morph from Larva, structures morph from Drones, and major tech jumps come from base upgrades such as Hatchery to Lair to Hive.</p></section>'
+      ].join("");
+    }
+
+    function renderNodePanel(node) {
+      const details = node.details || {};
+      const cost = details.cost || {};
+      const sectionHtml = [
+        renderSection("Requires", details.requires),
+        renderSection("Morphs From", details.morphsFrom),
+        renderSection("Morphs To", details.morphsTo),
+        renderSection("Produces", details.produces),
+        renderSection("Unlocks", details.unlocks),
+        renderSection("Provides", details.provides),
+        renderSection("Harvests", details.harvests),
+        renderSection("Spreads", details.spreads),
+        renderSection("Produced By", details.producedBy),
+        renderSection("Required For", details.requiredFor),
+        renderSection("Abilities", details.abilities),
+        renderSection("Spawns", details.spawns),
+        renderSection("Used For", details.usedFor),
+        renderSection("Provided By", details.providedBy)
+      ].join("");
+
+      infoPanel.innerHTML = [
+        '<p class="info-kicker">Node</p>',
+        '<h2 class="info-title">' + escapeHtml(node.name) + "</h2>",
+        '<div class="meta">' + escapeHtml(groupLabels[node.group] || node.group) + "</div>",
+        '<p class="info-lead">' + escapeHtml(details.description || "No description provided.") + "</p>",
+        '<section class="section"><h3>Costs</h3>',
+        '<div class="stats">',
+        '<div class="stat-card"><strong>' + formatCostValue(cost.minerals) + '</strong><span>Minerals</span></div>',
+        '<div class="stat-card"><strong>' + formatCostValue(cost.gas) + '</strong><span>Gas</span></div>',
+        '<div class="stat-card"><strong>' + formatCostValue(cost.supply) + '</strong><span>Supply</span></div>',
+        "</div></section>",
+        sectionHtml
+      ].join("");
+    }
+
+    function renderEdgePanel(edge) {
+      infoPanel.innerHTML = [
+        '<p class="info-kicker">Relationship</p>',
+        '<h2 class="info-title">' + escapeHtml(edge.relationType) + "</h2>",
+        '<div class="relationship-card">',
+        '<strong>' + escapeHtml(edge.fromName) + " -> " + escapeHtml(edge.toName) + "</strong>",
+        '<p>' + escapeHtml(edge.description) + "</p>",
+        "</div>",
+        '<section class="section"><h3>Interpretation</h3><p class="info-lead">This arrow shows how the source node enables, spawns, spreads, or morphs into the target node inside the Zerg tech tree.</p></section>'
+      ].join("");
+    }
+
+    renderDefaultPanel();
+
+    const container = document.getElementById("network");
+    const data = { nodes: visNodes, edges: visEdges };
+    const options = {
+      autoResize: true,
+      physics: false,
+      groups: groupStyles,
+      nodes: {
+        borderWidth: 2,
+        borderWidthSelected: 3,
+        shadow: {
+          enabled: true,
+          color: "rgba(29, 38, 31, 0.18)",
+          size: 16,
+          x: 0,
+          y: 8
+        }
+      },
+      edges: {
+        arrows: {
+          to: {
+            enabled: true,
+            scaleFactor: 0.78
+          }
+        },
+        selectionWidth: 4,
+        hoverWidth: 3,
+        smooth: false
+      },
+      interaction: {
+        dragNodes: true,
+        dragView: true,
+        zoomView: true,
+        hover: true,
+        navigationButtons: true,
+        keyboard: true,
+        tooltipDelay: 100
+      }
+    };
+
+    const network = new vis.Network(container, data, options);
+
+    let fitTimer = null;
+    let lastViewportWidth = window.innerWidth;
+    let lastViewportHeight = window.innerHeight;
+    let wasCompactViewport = window.matchMedia("(max-width: 980px)").matches;
+
+    function scheduleNetworkFit(delay) {
+      window.clearTimeout(fitTimer);
+      fitTimer = window.setTimeout(function () {
+        network.redraw();
+        fitNetworkToViewport();
+      }, delay || 0);
+    }
+
+    function fitNetworkToViewport() {
+      network.fit({ animation: false });
+
+      if (window.matchMedia("(max-width: 980px)").matches) {
+        network.moveTo({
+          position: network.getViewPosition(),
+          scale: network.getScale() * 0.92,
+          animation: false
+        });
+      }
+    }
+
+    scheduleNetworkFit(80);
+
+    window.addEventListener("resize", function () {
+      const widthDelta = Math.abs(window.innerWidth - lastViewportWidth);
+      const heightDelta = Math.abs(window.innerHeight - lastViewportHeight);
+      const isCompactViewport = window.matchMedia("(max-width: 980px)").matches;
+      const viewportModeChanged = isCompactViewport !== wasCompactViewport;
+
+      lastViewportWidth = window.innerWidth;
+      lastViewportHeight = window.innerHeight;
+      wasCompactViewport = isCompactViewport;
+
+      if (viewportModeChanged || widthDelta > 60 || heightDelta > 140) {
+        scheduleNetworkFit(140);
+      }
+    }, { passive: true });
+
+    window.addEventListener("orientationchange", function () {
+      scheduleNetworkFit(180);
+    }, { passive: true });
+
+    window.addEventListener("pageshow", function () {
+      scheduleNetworkFit(60);
+    });
+
+    network.once("stabilized", function () {
+      fitNetworkToViewport();
+    });
+
+    network.on("click", function (params) {
+      if (params.nodes.length) {
+        renderNodePanel(nodesById[params.nodes[0]]);
+        return;
+      }
+
+      if (params.edges.length) {
+        renderEdgePanel(visEdges.get(params.edges[0]));
+        return;
+      }
+
+      renderDefaultPanel();
+    });
+  </script>
+</body>
+</html>

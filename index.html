@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StarCraft2 Wiki</title>
+  <style>
+    :root {
+      --bg-1: #0d1320;
+      --bg-2: #161d2b;
+      --panel: rgba(16, 22, 35, 0.72);
+      --panel-strong: rgba(18, 25, 39, 0.86);
+      --line: rgba(255, 255, 255, 0.1);
+      --text: #f4f7fb;
+      --muted: #a5b0c4;
+      --accent: #5ab2ff;
+      --accent-soft: rgba(90, 178, 255, 0.18);
+      --accent-2: #ecc263;
+      --shadow: rgba(0, 0, 0, 0.36);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Avenir Next", "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 15% 20%, rgba(90, 178, 255, 0.18), transparent 18%),
+        radial-gradient(circle at 82% 18%, rgba(236, 194, 99, 0.16), transparent 16%),
+        radial-gradient(circle at 70% 82%, rgba(126, 86, 184, 0.14), transparent 18%),
+        linear-gradient(135deg, var(--bg-1), var(--bg-2));
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    body::before {
+      background:
+        radial-gradient(circle at 12% 24%, rgba(255, 255, 255, 0.24) 0 1px, transparent 1.2px),
+        radial-gradient(circle at 32% 62%, rgba(255, 255, 255, 0.18) 0 1px, transparent 1.2px),
+        radial-gradient(circle at 74% 34%, rgba(255, 255, 255, 0.2) 0 1px, transparent 1.2px),
+        radial-gradient(circle at 88% 72%, rgba(255, 255, 255, 0.18) 0 1px, transparent 1.2px),
+        radial-gradient(circle at 60% 88%, rgba(255, 255, 255, 0.16) 0 1px, transparent 1.2px);
+      opacity: 0.65;
+      background-size: 360px 360px;
+      animation: drift 20s linear infinite;
+    }
+
+    body::after {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0));
+      mix-blend-mode: screen;
+    }
+
+    @keyframes drift {
+      from {
+        transform: translate3d(0, 0, 0);
+      }
+
+      to {
+        transform: translate3d(-24px, 18px, 0);
+      }
+    }
+
+    .shell {
+      position: relative;
+      z-index: 1;
+      width: min(1240px, calc(100% - 32px));
+      margin: 24px auto;
+      padding: 28px;
+      border-radius: 32px;
+      background: linear-gradient(180deg, rgba(20, 27, 42, 0.72), rgba(13, 18, 29, 0.78));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 24px 60px var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 26px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-mark {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.04)),
+        linear-gradient(135deg, var(--accent-soft), rgba(255, 255, 255, 0));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      color: var(--accent-2);
+    }
+
+    .brand-text h1 {
+      margin: 0;
+      font-size: 1.1rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .brand-text p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .status-pill {
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+      gap: 22px;
+    }
+
+    .hero-panel,
+    .preview-panel,
+    .card {
+      position: relative;
+      overflow: hidden;
+      border-radius: 28px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .hero-panel {
+      padding: 30px;
+      background:
+        radial-gradient(circle at top right, rgba(255, 255, 255, 0.08), transparent 24%),
+        linear-gradient(160deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)),
+        var(--panel);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--accent-2);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-weight: 700;
+    }
+
+    .hero-panel h2 {
+      margin: 18px 0 12px;
+      font-size: clamp(2.4rem, 5vw, 4.4rem);
+      line-height: 0.96;
+      letter-spacing: -0.04em;
+      max-width: 10ch;
+    }
+
+    .hero-panel p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.03rem;
+      line-height: 1.7;
+      max-width: 62ch;
+    }
+
+    .controls {
+      margin-top: 26px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .select-wrap {
+      position: relative;
+    }
+
+    select {
+      width: 100%;
+      appearance: none;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
+        rgba(11, 17, 28, 0.65);
+      color: var(--text);
+      border-radius: 18px;
+      padding: 16px 52px 16px 16px;
+      font-size: 1rem;
+      outline: none;
+    }
+
+    .select-wrap::after {
+      content: "▾";
+      position: absolute;
+      right: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--accent-2);
+      pointer-events: none;
+      font-size: 1rem;
+    }
+
+    .launch-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px 20px;
+      border-radius: 18px;
+      text-decoration: none;
+      font-weight: 700;
+      color: #0d1622;
+      background: linear-gradient(135deg, var(--accent-2), var(--accent));
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.24);
+      min-width: 170px;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .launch-button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 30px rgba(0, 0, 0, 0.28);
+    }
+
+    .stats-row {
+      margin-top: 24px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .stat {
+      padding: 16px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 1.25rem;
+      color: var(--accent-2);
+    }
+
+    .stat span {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .preview-panel {
+      padding: 26px;
+      background:
+        radial-gradient(circle at top right, var(--accent-soft), transparent 30%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)),
+        var(--panel-strong);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      min-height: 100%;
+    }
+
+    .preview-kicker {
+      color: var(--accent-2);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .preview-title {
+      margin: 0;
+      font-size: 2rem;
+      line-height: 1;
+      letter-spacing: -0.03em;
+    }
+
+    .preview-subtitle {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .preview-chip-row,
+    .card-chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #dce6f5;
+      font-size: 0.88rem;
+    }
+
+    .preview-links {
+      margin-top: auto;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .ghost-link,
+    .inline-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 16px;
+      padding: 12px 14px;
+      text-decoration: none;
+      font-weight: 600;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .cards {
+      margin-top: 22px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      padding: 22px;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .card:hover,
+    .card.is-active {
+      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.18);
+      box-shadow: 0 24px 44px rgba(0, 0, 0, 0.24);
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      opacity: 0.9;
+      pointer-events: none;
+    }
+
+    .card[data-race="terran"]::before {
+      background: linear-gradient(145deg, rgba(58, 117, 163, 0.26), rgba(58, 117, 163, 0));
+    }
+
+    .card[data-race="zerg"]::before {
+      background: linear-gradient(145deg, rgba(120, 156, 80, 0.26), rgba(120, 156, 80, 0));
+    }
+
+    .card[data-race="protoss"]::before {
+      background: linear-gradient(145deg, rgba(202, 168, 90, 0.26), rgba(202, 168, 90, 0));
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .faction-badge {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .card h3 {
+      margin: 16px 0 8px;
+      font-size: 1.35rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+      min-height: 96px;
+    }
+
+    .card-footer {
+      margin-top: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: #d7e1f1;
+    }
+
+    .card-arrow {
+      color: var(--accent-2);
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .footer-note {
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: 0.92rem;
+      text-align: center;
+    }
+
+    @media (max-width: 1040px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .cards {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .shell {
+        width: min(100% - 20px, 1240px);
+        margin: 10px auto;
+        padding: 18px;
+        border-radius: 24px;
+      }
+
+      .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .controls,
+      .stats-row {
+        grid-template-columns: 1fr;
+      }
+
+      .launch-button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">SC</div>
+        <div class="brand-text">
+          <h1>StarCraft2 Wiki</h1>
+          <p>Interactive tech tree atlas for Terran, Zerg, and Protoss.</p>
+        </div>
+      </div>
+      <div class="status-pill">3 race encyclopedias, local HTML, no backend</div>
+    </header>
+
+    <section class="hero">
+      <div class="hero-panel">
+        <div class="eyebrow">Command Console</div>
+        <h2>Choose your faction.</h2>
+        <p>
+          Jump straight into a visual StarCraft II tech tree with draggable nodes,
+          clickable production chains, and faction-specific mechanics explained in
+          a live info panel. Use the selector for a quick launch or pick a race card below.
+        </p>
+
+        <div class="controls">
+          <label class="select-wrap">
+            <select id="race-select" aria-label="Select StarCraft II race">
+              <option value="terran">Terran Dominion</option>
+              <option value="zerg">Zerg Swarm</option>
+              <option value="protoss">Protoss Daelaam</option>
+            </select>
+          </label>
+          <a class="launch-button" id="launch-link" href="terran-tech-tree.html">Open Tech Tree</a>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat">
+            <strong>3</strong>
+            <span>Playable races covered</span>
+          </div>
+          <div class="stat">
+            <strong>Interactive</strong>
+            <span>Draggable nodes and clickable relationships</span>
+          </div>
+          <div class="stat">
+            <strong>Standalone</strong>
+            <span>Pure HTML, CSS, and local JavaScript data</span>
+          </div>
+        </div>
+      </div>
+
+      <aside class="preview-panel" id="preview-panel">
+        <div class="preview-kicker" id="preview-kicker">Terran briefing</div>
+        <h3 class="preview-title" id="preview-title">Terran Dominion</h3>
+        <p class="preview-subtitle" id="preview-description"></p>
+        <div class="preview-chip-row" id="preview-mechanics"></div>
+        <div class="preview-links">
+          <a class="ghost-link" id="preview-open" href="terran-tech-tree.html">Launch selected race</a>
+          <a class="inline-link" id="preview-alt" href="terran-tech-tree.html">Open in new tab</a>
+        </div>
+      </aside>
+    </section>
+
+    <section class="cards" id="race-cards">
+      <a class="card is-active" data-race="terran" href="terran-tech-tree.html">
+        <div class="card-header">
+          <div class="faction-badge">T</div>
+          <div class="card-chip-row">
+            <span class="chip">Modular add-ons</span>
+            <span class="chip">Linear tech</span>
+          </div>
+        </div>
+        <h3>Terran</h3>
+        <p>
+          Structured production with add-ons, layered infantry and mech branches,
+          and clean tech progression from Barracks to Factory to Starport.
+        </p>
+        <div class="card-footer">
+          <span>Open Terran tree</span>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+
+      <a class="card" data-race="zerg" href="zerg-tech-tree.html">
+        <div class="card-header">
+          <div class="faction-badge">Z</div>
+          <div class="card-chip-row">
+            <span class="chip">Larva economy</span>
+            <span class="chip">Morph chains</span>
+          </div>
+        </div>
+        <h3>Zerg</h3>
+        <p>
+          Swarm progression built around Larva, Drone morphs, town hall upgrades,
+          and branching creature evolutions from Zergling to Brood Lord.
+        </p>
+        <div class="card-footer">
+          <span>Open Zerg tree</span>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+
+      <a class="card" data-race="protoss" href="protoss-tech-tree.html">
+        <div class="card-header">
+          <div class="faction-badge">P</div>
+          <div class="card-chip-row">
+            <span class="chip">Power fields</span>
+            <span class="chip">Warp tech</span>
+          </div>
+        </div>
+        <h3>Protoss</h3>
+        <p>
+          Psionic infrastructure with Pylon power, Gateway to Warp Gate transitions,
+          Archon morphing, and distinct robotics and stargate late-game branches.
+        </p>
+        <div class="card-footer">
+          <span>Open Protoss tree</span>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+    </section>
+
+    <p class="footer-note">
+      Tip: the race selector and the faction cards stay in sync, so you can browse visually and launch with one click.
+    </p>
+  </main>
+
+  <script>
+    const raceData = {
+      terran: {
+        label: "Terran Dominion",
+        kicker: "Terran briefing",
+        href: "terran-tech-tree.html",
+        description:
+          "Terran tech revolves around scalable structure chains, worker-built infrastructure, and add-ons that split production between fast base units and higher-tech specialists.",
+        mechanics: ["SCV building", "Tech Lab and Reactor", "Barracks → Factory → Starport"],
+        accent: "#5ab2ff",
+        accent2: "#f0b35b",
+        accentSoft: "rgba(90, 178, 255, 0.18)"
+      },
+      zerg: {
+        label: "Zerg Swarm",
+        kicker: "Zerg briefing",
+        href: "zerg-tech-tree.html",
+        description:
+          "Zerg production flows through Larva and morphs, with creep, base upgrades, and organism evolution defining the path from macro economy to hive-tier monsters.",
+        mechanics: ["Larva spawning", "Drone morphing", "Hatchery → Lair → Hive"],
+        accent: "#8fcb63",
+        accent2: "#e5a15d",
+        accentSoft: "rgba(143, 203, 99, 0.18)"
+      },
+      protoss: {
+        label: "Protoss Daelaam",
+        kicker: "Protoss briefing",
+        href: "protoss-tech-tree.html",
+        description:
+          "Protoss tech hinges on Pylon power, warp-based infrastructure, Gateway transformation, and specialized robotics and stargate branches that peak in fleet-tier units.",
+        mechanics: ["Power Fields", "Warp Gate transformation", "Archon morphing"],
+        accent: "#d2a958",
+        accent2: "#74b7ff",
+        accentSoft: "rgba(210, 169, 88, 0.18)"
+      }
+    };
+
+    const root = document.documentElement;
+    const select = document.getElementById("race-select");
+    const launchLink = document.getElementById("launch-link");
+    const previewKicker = document.getElementById("preview-kicker");
+    const previewTitle = document.getElementById("preview-title");
+    const previewDescription = document.getElementById("preview-description");
+    const previewMechanics = document.getElementById("preview-mechanics");
+    const previewOpen = document.getElementById("preview-open");
+    const previewAlt = document.getElementById("preview-alt");
+    const cards = Array.from(document.querySelectorAll(".card"));
+
+    function updateRace(race) {
+      const data = raceData[race];
+      if (!data) {
+        return;
+      }
+
+      select.value = race;
+      launchLink.href = data.href;
+      previewKicker.textContent = data.kicker;
+      previewTitle.textContent = data.label;
+      previewDescription.textContent = data.description;
+      previewOpen.href = data.href;
+      previewAlt.href = data.href;
+      previewAlt.target = "_blank";
+      previewAlt.rel = "noreferrer";
+      previewMechanics.innerHTML = data.mechanics
+        .map((item) => '<span class="chip">' + item + "</span>")
+        .join("");
+
+      root.style.setProperty("--accent", data.accent);
+      root.style.setProperty("--accent-2", data.accent2);
+      root.style.setProperty("--accent-soft", data.accentSoft);
+
+      cards.forEach((card) => {
+        card.classList.toggle("is-active", card.dataset.race === race);
+      });
+    }
+
+    select.addEventListener("change", function () {
+      updateRace(select.value);
+    });
+
+    cards.forEach((card) => {
+      card.addEventListener("mouseenter", function () {
+        updateRace(card.dataset.race);
+      });
+      card.addEventListener("focus", function () {
+        updateRace(card.dataset.race);
+      });
+    });
+
+    updateRace("terran");
+  </script>
+</body>
+</html>

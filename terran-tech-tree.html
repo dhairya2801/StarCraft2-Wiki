@@ -1,0 +1,1693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StarCraft II Terran Tech Tree</title>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/vis-network/styles/vis-network.min.css"
+  />
+  <style>
+    :root {
+      --bg-1: #0d1320;
+      --bg-2: #161d2b;
+      --panel: rgba(16, 22, 35, 0.72);
+      --panel-strong: rgba(18, 25, 39, 0.86);
+      --line: rgba(255, 255, 255, 0.1);
+      --text: #f4f7fb;
+      --muted: #a5b0c4;
+      --accent: #5ab2ff;
+      --accent-soft: rgba(90, 178, 255, 0.18);
+      --accent-2: #ecc263;
+      --accent-2-soft: rgba(236, 194, 99, 0.16);
+      --shadow: rgba(0, 0, 0, 0.36);
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100dvh;
+      font-family: "Avenir Next", "Segoe UI", sans-serif;
+      color: var(--text);
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 15% 20%, var(--accent-soft), transparent 18%),
+        radial-gradient(circle at 82% 18%, var(--accent-2-soft), transparent 16%),
+        radial-gradient(circle at 70% 82%, rgba(126, 86, 184, 0.14), transparent 18%),
+        linear-gradient(135deg, var(--bg-1), var(--bg-2));
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    body::before {
+      background:
+        radial-gradient(circle at 12% 24%, rgba(255, 255, 255, 0.24) 0 1px, transparent 1.2px),
+        radial-gradient(circle at 32% 62%, rgba(255, 255, 255, 0.18) 0 1px, transparent 1.2px),
+        radial-gradient(circle at 74% 34%, rgba(255, 255, 255, 0.2) 0 1px, transparent 1.2px),
+        radial-gradient(circle at 88% 72%, rgba(255, 255, 255, 0.18) 0 1px, transparent 1.2px),
+        radial-gradient(circle at 60% 88%, rgba(255, 255, 255, 0.16) 0 1px, transparent 1.2px);
+      opacity: 0.65;
+      background-size: 360px 360px;
+      animation: drift 20s linear infinite;
+    }
+
+    body::after {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0));
+      mix-blend-mode: screen;
+    }
+
+    @keyframes drift {
+      from {
+        transform: translate3d(0, 0, 0);
+      }
+
+      to {
+        transform: translate3d(-24px, 18px, 0);
+      }
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      width: min(1240px, calc(100% - clamp(16px, 3vw, 32px)));
+      height: calc(100dvh - clamp(16px, 3vw, 48px));
+      min-height: calc(100dvh - clamp(16px, 3vw, 48px));
+      margin: clamp(8px, 2vw, 24px) auto;
+      padding: clamp(14px, 2.3vw, 28px);
+      border-radius: 32px;
+      background: linear-gradient(180deg, rgba(20, 27, 42, 0.72), rgba(13, 18, 29, 0.78));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 24px 60px var(--shadow);
+      backdrop-filter: blur(18px);
+      display: grid;
+      grid-template-columns: minmax(0, 2.15fr) minmax(290px, 1fr);
+      gap: clamp(14px, 2vw, 22px);
+    }
+
+    .canvas-pane {
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      min-height: 0;
+    }
+
+    .canvas-card,
+    .info-pane {
+      position: relative;
+      overflow: hidden;
+      border-radius: 28px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .canvas-card {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 0;
+    }
+
+    .canvas-header {
+      padding: clamp(14px, 1.8vw, 18px) clamp(16px, 2vw, 22px) clamp(12px, 1.5vw, 14px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+      flex-wrap: wrap;
+      background:
+        radial-gradient(circle at top right, rgba(255, 255, 255, 0.08), transparent 24%),
+        linear-gradient(160deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)),
+        var(--panel);
+    }
+
+    .canvas-title {
+      margin: 0;
+      font-size: 1.55rem;
+      line-height: 1.1;
+      letter-spacing: 0.02em;
+      color: var(--text);
+    }
+
+    .canvas-subtitle {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+      max-width: 52ch;
+    }
+
+    .canvas-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .header-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 16px;
+      padding: 10px 14px;
+      text-decoration: none;
+      font-weight: 600;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .canvas-badge {
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--accent-2);
+      font-size: 0.8rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    #network {
+      flex: 1 1 auto;
+      min-height: 0;
+      touch-action: none;
+      overscroll-behavior: contain;
+      background:
+        radial-gradient(circle at 16% 18%, rgba(90, 178, 255, 0.08), transparent 18%),
+        radial-gradient(circle at 84% 78%, rgba(236, 194, 99, 0.08), transparent 22%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(246, 249, 253, 0.98)),
+        linear-gradient(90deg, rgba(162, 177, 205, 0.08) 1px, transparent 1px),
+        linear-gradient(rgba(162, 177, 205, 0.08) 1px, transparent 1px);
+      background-size: auto, auto, auto, 48px 48px, 48px 48px;
+    }
+
+    .info-pane {
+      background: var(--panel-strong);
+      border-left: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 22px 20px 28px;
+      height: 100%;
+      overflow-y: auto;
+    }
+
+    .info-kicker {
+      margin: 0 0 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 0.73rem;
+      color: var(--accent-2);
+      font-weight: 800;
+    }
+
+    .info-title {
+      margin: 0;
+      font-size: 1.5rem;
+      line-height: 1.1;
+      color: var(--text);
+    }
+
+    .info-lead {
+      margin: 10px 0 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .section {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .section h3 {
+      margin: 0 0 10px;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .stat-card {
+      padding: 12px 10px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      text-align: center;
+    }
+
+    .stat-card strong {
+      display: block;
+      font-size: 1.1rem;
+      color: var(--accent-2);
+    }
+
+    .stat-card span {
+      display: block;
+      margin-top: 4px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .tag-list,
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tag,
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #dce6f5;
+      font-size: 0.88rem;
+      line-height: 1.2;
+    }
+
+    .swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.15);
+      flex: 0 0 auto;
+    }
+
+    .meta {
+      margin-top: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #dce6f5;
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    .relationship-card {
+      margin-top: 18px;
+      padding: 16px;
+      border-radius: 18px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03)),
+        rgba(8, 12, 20, 0.24);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .relationship-card p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .media-card {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 20px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03)),
+        rgba(8, 12, 20, 0.24);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .node-image {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .image-empty {
+      display: grid;
+      place-items: center;
+      min-height: 170px;
+      text-align: center;
+      padding: 18px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px dashed rgba(255, 255, 255, 0.12);
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 1180px) {
+      .app {
+        grid-template-columns: minmax(0, 1.8fr) minmax(270px, 0.95fr);
+      }
+    }
+
+    @media (max-width: 980px) {
+      body {
+        overflow: auto;
+      }
+
+      .app {
+        width: min(100% - 16px, 1240px);
+        height: auto;
+        min-height: 0;
+        margin: 8px auto;
+        padding: 14px;
+        grid-template-columns: 1fr;
+      }
+
+      .canvas-card {
+        height: auto;
+        min-height: 0;
+      }
+
+      #network {
+        height: clamp(360px, 62dvh, 560px);
+        min-height: clamp(360px, 62dvh, 560px);
+      }
+
+      .info-pane {
+        height: auto;
+        border-left: 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .canvas-header {
+        align-items: flex-start;
+      }
+
+      .canvas-actions {
+        justify-content: flex-start;
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .app {
+        width: calc(100% - 12px);
+        margin: 6px auto;
+        padding: 10px;
+        border-radius: 20px;
+      }
+
+      .canvas-card,
+      .info-pane {
+        border-radius: 20px;
+      }
+
+      .canvas-title,
+      .info-title {
+        font-size: 1.28rem;
+      }
+
+      .canvas-subtitle,
+      .info-lead {
+        font-size: 0.9rem;
+      }
+
+      .header-link,
+      .canvas-badge {
+        padding: 9px 12px;
+        font-size: 0.76rem;
+      }
+
+      #network {
+        height: clamp(320px, 58dvh, 460px);
+        min-height: clamp(320px, 58dvh, 460px);
+      }
+
+      .info-pane {
+        padding: 18px 16px 22px;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <main class="canvas-pane">
+      <section class="canvas-card">
+        <div class="canvas-header">
+          <div>
+            <h1 class="canvas-title">Terran Tech Tree</h1>
+            <p class="canvas-subtitle">
+              Drag nodes, zoom the map, and click any node or arrow for details.
+            </p>
+          </div>
+          <div class="canvas-actions">
+            <a class="header-link" href="index.html">Back to Wiki</a>
+            <div class="canvas-badge">Vis Network</div>
+          </div>
+        </div>
+        <div id="network"></div>
+      </section>
+    </main>
+
+    <aside class="info-pane" id="info-panel"></aside>
+  </div>
+
+  <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+  <script>
+    const rawNodes = [
+      {
+        name: "Minerals",
+        label: "Minerals",
+        group: "resource",
+        x: 0,
+        y: -260,
+        details: {
+          description: "Harvested by SCVs from mineral patches.",
+          cost: { minerals: null, gas: null, supply: null },
+          usedFor: ["Core resource for structures, units, and add-ons."]
+        }
+      },
+      {
+        name: "Vespene Gas",
+        label: "Vespene\nGas",
+        group: "resource",
+        x: 0,
+        y: -80,
+        details: {
+          description: "Harvested by SCVs from Refineries built on Vespene Geysers.",
+          cost: { minerals: null, gas: null, supply: null },
+          requires: ["Refinery", "SCV"]
+        }
+      },
+      {
+        name: "Supply",
+        label: "Supply",
+        group: "resource",
+        x: 0,
+        y: 110,
+        details: {
+          description: "Determines the maximum number of units you can field. Provided by Command Centers and Supply Depots.",
+          cost: { minerals: null, gas: null, supply: null },
+          providedBy: ["Command Center", "Supply Depot"]
+        }
+      },
+      {
+        name: "Command Center",
+        label: "Command\nCenter",
+        group: "tier1",
+        x: 280,
+        y: -120,
+        details: {
+          description: "Primary town hall. Produces SCVs. Unlocks Supply Depot, Refinery, Engineering Bay. Upgrades to Orbital Command, Planetary Fortress.",
+          cost: { minerals: 400, gas: 0, supply: 0 },
+          produces: ["SCV"],
+          unlocks: ["Supply Depot", "Refinery", "Engineering Bay"],
+          upgradesTo: ["Orbital Command", "Planetary Fortress"],
+          provides: ["Supply"]
+        }
+      },
+      {
+        name: "SCV",
+        label: "SCV",
+        group: "worker",
+        x: 280,
+        y: 180,
+        details: {
+          description: "Basic worker unit. Harvests resources, builds structures, and repairs mechanical units/buildings.",
+          cost: { minerals: 50, gas: 0, supply: 1 },
+          requires: ["Command Center"],
+          harvests: ["Minerals", "Vespene Gas"],
+          builds: [
+            "Supply Depot",
+            "Refinery",
+            "Engineering Bay",
+            "Barracks",
+            "Bunker",
+            "Missile Turret",
+            "Sensor Tower",
+            "Ghost Academy",
+            "Factory",
+            "Armory",
+            "Starport",
+            "Fusion Core"
+          ]
+        }
+      },
+      {
+        name: "Supply Depot",
+        label: "Supply\nDepot",
+        group: "tier1",
+        x: 620,
+        y: -260,
+        details: {
+          description: "Provides 8 Supply. Can be lowered to allow units to pass over it.",
+          cost: { minerals: 100, gas: 0, supply: 0 },
+          requires: ["SCV"],
+          unlocks: ["Barracks"],
+          provides: ["Supply"]
+        }
+      },
+      {
+        name: "Refinery",
+        label: "Refinery",
+        group: "tier1",
+        x: 620,
+        y: -60,
+        details: {
+          description: "Built on Vespene Geysers to allow SCVs to harvest Vespene Gas.",
+          cost: { minerals: 75, gas: 0, supply: 0 },
+          requires: ["SCV", "Command Center"],
+          unlocks: ["Vespene Gas harvesting"]
+        }
+      },
+      {
+        name: "Engineering Bay",
+        label: "Engineering\nBay",
+        group: "tier15",
+        x: 620,
+        y: 140,
+        details: {
+          description: "Unlocks infantry upgrades, Missile Turret, Sensor Tower, and Planetary Fortress.",
+          cost: { minerals: 125, gas: 0, supply: 0 },
+          requires: ["SCV", "Command Center"],
+          unlocks: ["Missile Turret", "Sensor Tower", "Planetary Fortress", "Infantry Upgrades"]
+        }
+      },
+      {
+        name: "Barracks",
+        label: "Barracks",
+        group: "tier1",
+        x: 620,
+        y: 360,
+        details: {
+          description: "Primary infantry production building. Produces Marine, Reaper, Marauder, Ghost. Unlocks Factory, Ghost Academy, Bunker.",
+          cost: { minerals: 150, gas: 0, supply: 0 },
+          requires: ["SCV", "Supply Depot"],
+          produces: ["Marine", "Reaper", "Marauder", "Ghost"],
+          unlocks: ["Factory", "Ghost Academy", "Bunker"],
+          addOns: ["Tech Lab", "Reactor"]
+        }
+      },
+      {
+        name: "Missile Turret",
+        label: "Missile\nTurret",
+        group: "tier15",
+        x: 980,
+        y: 20,
+        details: {
+          description: "Anti-air defensive structure. Acts as a detector.",
+          cost: { minerals: 100, gas: 0, supply: 0 },
+          requires: ["SCV", "Engineering Bay"]
+        }
+      },
+      {
+        name: "Sensor Tower",
+        label: "Sensor\nTower",
+        group: "tier15",
+        x: 980,
+        y: 200,
+        details: {
+          description: "Reveals enemy movements in a large radius outside standard vision.",
+          cost: { minerals: 125, gas: 100, supply: 0 },
+          requires: ["SCV", "Engineering Bay"]
+        }
+      },
+      {
+        name: "Bunker",
+        label: "Bunker",
+        group: "tier15",
+        x: 980,
+        y: 320,
+        details: {
+          description: "Defensive structure that can hold up to 4 infantry units.",
+          cost: { minerals: 100, gas: 0, supply: 0 },
+          requires: ["SCV", "Barracks"]
+        }
+      },
+      {
+        name: "Marine",
+        label: "Marine",
+        group: "tier1",
+        x: 980,
+        y: 440,
+        details: {
+          description: "General-purpose ranged infantry.",
+          cost: { minerals: 50, gas: 0, supply: 1 },
+          requires: ["Barracks"]
+        }
+      },
+      {
+        name: "Reaper",
+        label: "Reaper",
+        group: "tier1",
+        x: 980,
+        y: 560,
+        details: {
+          description: "Fast raider that can jump up and down cliffs.",
+          cost: { minerals: 50, gas: 50, supply: 1 },
+          requires: ["Barracks"]
+        }
+      },
+      {
+        name: "Ghost Academy",
+        label: "Ghost\nAcademy",
+        group: "tier15",
+        x: 980,
+        y: 700,
+        details: {
+          description: "Unlocks Ghost production at Barracks and allows building of Nuclear Missiles.",
+          cost: { minerals: 150, gas: 50, supply: 0 },
+          requires: ["SCV", "Barracks"],
+          unlocks: ["Ghost", "Nuclear Missiles"]
+        }
+      },
+      {
+        name: "Tech Lab",
+        label: "Tech\nLab",
+        group: "addon",
+        x: 980,
+        y: 860,
+        details: {
+          description: "Can be attached to a Barracks, Factory, or Starport. Unlocks advanced units and research for that specific building.",
+          cost: { minerals: 50, gas: 25, supply: 0 },
+          attachesTo: ["Barracks", "Factory", "Starport"],
+          unlocks: ["Advanced units and research"]
+        }
+      },
+      {
+        name: "Reactor",
+        label: "Reactor",
+        group: "addon",
+        x: 980,
+        y: 1020,
+        details: {
+          description: "Can be attached to a Barracks, Factory, or Starport. Allows the building to produce two base-tier units simultaneously.",
+          cost: { minerals: 50, gas: 50, supply: 0 },
+          attachesTo: ["Barracks", "Factory", "Starport"],
+          effect: ["Double production of base-tier units."]
+        }
+      },
+      {
+        name: "Marauder",
+        label: "Marauder",
+        group: "tier15",
+        x: 1340,
+        y: 520,
+        details: {
+          description: "Heavy armored infantry, attacks deal bonus damage to armored units.",
+          cost: { minerals: 100, gas: 25, supply: 2 },
+          requires: ["Barracks", "Tech Lab"]
+        }
+      },
+      {
+        name: "Ghost",
+        label: "Ghost",
+        group: "tier15",
+        x: 1340,
+        y: 700,
+        details: {
+          description: "Elite stealth infantry. Can use EMP, Snipe, and call down Nukes.",
+          cost: { minerals: 150, gas: 125, supply: 2 },
+          requires: ["Barracks", "Tech Lab", "Ghost Academy"]
+        }
+      },
+      {
+        name: "Factory",
+        label: "Factory",
+        group: "tier2",
+        x: 1340,
+        y: 980,
+        details: {
+          description: "Vehicle production building. Produces Hellion, Widow Mine, Cyclone, Siege Tank, Thor. Unlocks Starport, Armory.",
+          cost: { minerals: 150, gas: 100, supply: 0 },
+          requires: ["SCV", "Barracks"],
+          produces: ["Hellion", "Widow Mine", "Cyclone", "Siege Tank", "Thor"],
+          unlocks: ["Starport", "Armory"],
+          addOns: ["Tech Lab", "Reactor"]
+        }
+      },
+      {
+        name: "Hellion",
+        label: "Hellion",
+        group: "tier2",
+        x: 1700,
+        y: 820,
+        details: {
+          description: "Fast scout/harassment vehicle with a linear area-of-effect flamethrower.",
+          cost: { minerals: 100, gas: 0, supply: 2 },
+          requires: ["Factory"]
+        }
+      },
+      {
+        name: "Widow Mine",
+        label: "Widow\nMine",
+        group: "tier2",
+        x: 1700,
+        y: 940,
+        details: {
+          description: "Burrows underground and fires a powerful splash damage missile.",
+          cost: { minerals: 75, gas: 25, supply: 2 },
+          requires: ["Factory"]
+        }
+      },
+      {
+        name: "Cyclone",
+        label: "Cyclone",
+        group: "tier2",
+        x: 1700,
+        y: 1060,
+        details: {
+          description: "Fast skirmish vehicle that can lock onto targets and fire while moving.",
+          cost: { minerals: 150, gas: 100, supply: 3 },
+          requires: ["Factory"]
+        }
+      },
+      {
+        name: "Siege Tank",
+        label: "Siege\nTank",
+        group: "tier2",
+        x: 1700,
+        y: 1180,
+        details: {
+          description: "Heavy artillery. Can deploy into Siege Mode for massive range and splash damage.",
+          cost: { minerals: 150, gas: 125, supply: 3 },
+          requires: ["Factory", "Tech Lab"]
+        }
+      },
+      {
+        name: "Armory",
+        label: "Armory",
+        group: "tier25",
+        x: 1340,
+        y: 1300,
+        details: {
+          description: "Unlocks vehicle/ship upgrades and Thor production.",
+          cost: { minerals: 150, gas: 100, supply: 0 },
+          requires: ["SCV", "Factory"],
+          unlocks: ["Thor", "Vehicle and Ship Upgrades"]
+        }
+      },
+      {
+        name: "Thor",
+        label: "Thor",
+        group: "tier2",
+        x: 1700,
+        y: 1300,
+        details: {
+          description: "Massive walking mech with devastating anti-air and anti-ground capabilities.",
+          cost: { minerals: 300, gas: 200, supply: 6 },
+          requires: ["Factory", "Tech Lab", "Armory"]
+        }
+      },
+      {
+        name: "Starport",
+        label: "Starport",
+        group: "tier3",
+        x: 2060,
+        y: 980,
+        details: {
+          description: "Aircraft production building. Produces Viking, Medivac, Liberator, Raven, Banshee, Battlecruiser. Unlocks Fusion Core.",
+          cost: { minerals: 150, gas: 100, supply: 0 },
+          requires: ["SCV", "Factory"],
+          produces: ["Viking", "Medivac", "Liberator", "Raven", "Banshee", "Battlecruiser"],
+          unlocks: ["Fusion Core"],
+          addOns: ["Tech Lab", "Reactor"]
+        }
+      },
+      {
+        name: "Viking",
+        label: "Viking",
+        group: "tier3",
+        x: 2420,
+        y: 760,
+        details: {
+          description: "Transforming ship. Excels at anti-air in Fighter Mode, can land to attack ground units in Assault Mode.",
+          cost: { minerals: 150, gas: 75, supply: 2 },
+          requires: ["Starport"]
+        }
+      },
+      {
+        name: "Medivac",
+        label: "Medivac",
+        group: "tier3",
+        x: 2420,
+        y: 900,
+        details: {
+          description: "Aerial transport unit that also heals biological units.",
+          cost: { minerals: 100, gas: 100, supply: 2 },
+          requires: ["Starport"]
+        }
+      },
+      {
+        name: "Liberator",
+        label: "Liberator",
+        group: "tier3",
+        x: 2420,
+        y: 1040,
+        details: {
+          description: "Anti-air fighter that can deploy into Defender Mode to project a deadly anti-ground zone.",
+          cost: { minerals: 150, gas: 150, supply: 3 },
+          requires: ["Starport"]
+        }
+      },
+      {
+        name: "Raven",
+        label: "Raven",
+        group: "tier3",
+        x: 2420,
+        y: 1180,
+        details: {
+          description: "Support caster and detector. Uses Interference Matrix, Anti-Armor Missile, and Auto-Turrets.",
+          cost: { minerals: 100, gas: 200, supply: 2 },
+          requires: ["Starport", "Tech Lab"]
+        }
+      },
+      {
+        name: "Banshee",
+        label: "Banshee",
+        group: "tier3",
+        x: 2420,
+        y: 1320,
+        details: {
+          description: "Tactical strike aircraft that can be upgraded with cloaking.",
+          cost: { minerals: 150, gas: 100, supply: 3 },
+          requires: ["Starport", "Tech Lab"]
+        }
+      },
+      {
+        name: "Fusion Core",
+        label: "Fusion\nCore",
+        group: "tier35",
+        x: 2060,
+        y: 1260,
+        details: {
+          description: "Unlocks Battlecruiser production and advanced Starport upgrades.",
+          cost: { minerals: 150, gas: 150, supply: 0 },
+          requires: ["SCV", "Starport"],
+          unlocks: ["Battlecruiser", "Advanced Starport Upgrades"]
+        }
+      },
+      {
+        name: "Battlecruiser",
+        label: "Battlecruiser",
+        group: "tier3",
+        x: 2420,
+        y: 1460,
+        details: {
+          description: "Massive capital ship. Can use Tactical Jump to teleport anywhere on the map.",
+          cost: { minerals: 400, gas: 300, supply: 6 },
+          requires: ["Starport", "Tech Lab", "Fusion Core"]
+        }
+      }
+    ];
+
+    const rawRelations = [
+      {
+        fromName: "Command Center",
+        toName: "SCV",
+        type: "Produces",
+        description: "Command Center produces SCVs."
+      },
+      {
+        fromName: "SCV",
+        toName: "Minerals",
+        type: "Harvests",
+        description: "SCVs harvest Minerals from mineral patches."
+      },
+      {
+        fromName: "Refinery",
+        toName: "Vespene Gas",
+        type: "Harvests",
+        description: "Refinery enables SCVs to harvest Vespene Gas from a geyser."
+      },
+      {
+        fromName: "Command Center",
+        toName: "Supply",
+        type: "Provides",
+        description: "Command Center contributes to your supply cap."
+      },
+      {
+        fromName: "Supply Depot",
+        toName: "Supply",
+        type: "Provides",
+        description: "Supply Depot provides 8 Supply."
+      },
+      {
+        fromName: "SCV",
+        toName: "Supply Depot",
+        type: "Builds",
+        description: "SCV constructs a Supply Depot."
+      },
+      {
+        fromName: "SCV",
+        toName: "Refinery",
+        type: "Builds",
+        description: "SCV builds a Refinery on a Vespene Geyser."
+      },
+      {
+        fromName: "SCV",
+        toName: "Engineering Bay",
+        type: "Builds",
+        description: "SCV constructs an Engineering Bay."
+      },
+      {
+        fromName: "SCV",
+        toName: "Barracks",
+        type: "Builds",
+        description: "SCV constructs a Barracks."
+      },
+      {
+        fromName: "SCV",
+        toName: "Bunker",
+        type: "Builds",
+        description: "SCV constructs a Bunker."
+      },
+      {
+        fromName: "SCV",
+        toName: "Missile Turret",
+        type: "Builds",
+        description: "SCV constructs a Missile Turret."
+      },
+      {
+        fromName: "SCV",
+        toName: "Sensor Tower",
+        type: "Builds",
+        description: "SCV constructs a Sensor Tower."
+      },
+      {
+        fromName: "SCV",
+        toName: "Ghost Academy",
+        type: "Builds",
+        description: "SCV constructs a Ghost Academy."
+      },
+      {
+        fromName: "SCV",
+        toName: "Factory",
+        type: "Builds",
+        description: "SCV constructs a Factory."
+      },
+      {
+        fromName: "SCV",
+        toName: "Armory",
+        type: "Builds",
+        description: "SCV constructs an Armory."
+      },
+      {
+        fromName: "SCV",
+        toName: "Starport",
+        type: "Builds",
+        description: "SCV constructs a Starport."
+      },
+      {
+        fromName: "SCV",
+        toName: "Fusion Core",
+        type: "Builds",
+        description: "SCV constructs a Fusion Core."
+      },
+      {
+        fromName: "Command Center",
+        toName: "Supply Depot",
+        type: "Unlocks",
+        description: "Command Center unlocks the Supply Depot."
+      },
+      {
+        fromName: "Command Center",
+        toName: "Refinery",
+        type: "Unlocks",
+        description: "Command Center unlocks the Refinery."
+      },
+      {
+        fromName: "Command Center",
+        toName: "Engineering Bay",
+        type: "Unlocks",
+        description: "Command Center unlocks the Engineering Bay."
+      },
+      {
+        fromName: "Supply Depot",
+        toName: "Barracks",
+        type: "Requires",
+        description: "Barracks requires a completed Supply Depot."
+      },
+      {
+        fromName: "Engineering Bay",
+        toName: "Missile Turret",
+        type: "Unlocks",
+        description: "Engineering Bay unlocks Missile Turret."
+      },
+      {
+        fromName: "Engineering Bay",
+        toName: "Sensor Tower",
+        type: "Unlocks",
+        description: "Engineering Bay unlocks Sensor Tower."
+      },
+      {
+        fromName: "Barracks",
+        toName: "Marine",
+        type: "Produces",
+        description: "Barracks produces Marines."
+      },
+      {
+        fromName: "Barracks",
+        toName: "Reaper",
+        type: "Produces",
+        description: "Barracks produces Reapers."
+      },
+      {
+        fromName: "Barracks",
+        toName: "Marauder",
+        type: "Produces",
+        description: "Barracks produces Marauders when equipped with a Tech Lab."
+      },
+      {
+        fromName: "Barracks",
+        toName: "Ghost",
+        type: "Produces",
+        description: "Barracks produces Ghosts when equipped with a Tech Lab and supported by a Ghost Academy."
+      },
+      {
+        fromName: "Barracks",
+        toName: "Factory",
+        type: "Unlocks",
+        description: "Barracks unlocks the Factory."
+      },
+      {
+        fromName: "Barracks",
+        toName: "Ghost Academy",
+        type: "Unlocks",
+        description: "Barracks unlocks the Ghost Academy."
+      },
+      {
+        fromName: "Barracks",
+        toName: "Bunker",
+        type: "Unlocks",
+        description: "Barracks unlocks the Bunker."
+      },
+      {
+        fromName: "Barracks",
+        toName: "Tech Lab",
+        type: "Supports Add-on",
+        description: "Barracks can attach a Tech Lab for advanced infantry units and research."
+      },
+      {
+        fromName: "Barracks",
+        toName: "Reactor",
+        type: "Supports Add-on",
+        description: "Barracks can attach a Reactor for double production of base-tier infantry."
+      },
+      {
+        fromName: "Tech Lab",
+        toName: "Marauder",
+        type: "Requires Tech Lab",
+        description: "Marauder requires a Barracks with Tech Lab."
+      },
+      {
+        fromName: "Tech Lab",
+        toName: "Ghost",
+        type: "Requires Tech Lab",
+        description: "Ghost requires a Barracks with Tech Lab."
+      },
+      {
+        fromName: "Ghost Academy",
+        toName: "Ghost",
+        type: "Unlocks",
+        description: "Ghost Academy unlocks Ghost production."
+      },
+      {
+        fromName: "Factory",
+        toName: "Hellion",
+        type: "Produces",
+        description: "Factory produces Hellions."
+      },
+      {
+        fromName: "Factory",
+        toName: "Widow Mine",
+        type: "Produces",
+        description: "Factory produces Widow Mines."
+      },
+      {
+        fromName: "Factory",
+        toName: "Cyclone",
+        type: "Produces",
+        description: "Factory produces Cyclones."
+      },
+      {
+        fromName: "Factory",
+        toName: "Siege Tank",
+        type: "Produces",
+        description: "Factory produces Siege Tanks when equipped with a Tech Lab."
+      },
+      {
+        fromName: "Factory",
+        toName: "Thor",
+        type: "Produces",
+        description: "Factory produces Thors when equipped with a Tech Lab and backed by an Armory."
+      },
+      {
+        fromName: "Factory",
+        toName: "Starport",
+        type: "Unlocks",
+        description: "Factory unlocks the Starport."
+      },
+      {
+        fromName: "Factory",
+        toName: "Armory",
+        type: "Unlocks",
+        description: "Factory unlocks the Armory."
+      },
+      {
+        fromName: "Factory",
+        toName: "Tech Lab",
+        type: "Supports Add-on",
+        description: "Factory can attach a Tech Lab for advanced vehicle units and research."
+      },
+      {
+        fromName: "Factory",
+        toName: "Reactor",
+        type: "Supports Add-on",
+        description: "Factory can attach a Reactor for double production of base-tier vehicles."
+      },
+      {
+        fromName: "Tech Lab",
+        toName: "Siege Tank",
+        type: "Requires Tech Lab",
+        description: "Siege Tank requires a Factory with Tech Lab."
+      },
+      {
+        fromName: "Tech Lab",
+        toName: "Thor",
+        type: "Requires Tech Lab",
+        description: "Thor requires a Factory with Tech Lab."
+      },
+      {
+        fromName: "Armory",
+        toName: "Thor",
+        type: "Unlocks",
+        description: "Armory unlocks Thor production."
+      },
+      {
+        fromName: "Starport",
+        toName: "Viking",
+        type: "Produces",
+        description: "Starport produces Vikings."
+      },
+      {
+        fromName: "Starport",
+        toName: "Medivac",
+        type: "Produces",
+        description: "Starport produces Medivacs."
+      },
+      {
+        fromName: "Starport",
+        toName: "Liberator",
+        type: "Produces",
+        description: "Starport produces Liberators."
+      },
+      {
+        fromName: "Starport",
+        toName: "Raven",
+        type: "Produces",
+        description: "Starport produces Ravens when equipped with a Tech Lab."
+      },
+      {
+        fromName: "Starport",
+        toName: "Banshee",
+        type: "Produces",
+        description: "Starport produces Banshees when equipped with a Tech Lab."
+      },
+      {
+        fromName: "Starport",
+        toName: "Battlecruiser",
+        type: "Produces",
+        description: "Starport produces Battlecruisers when equipped with a Tech Lab and supported by a Fusion Core."
+      },
+      {
+        fromName: "Starport",
+        toName: "Fusion Core",
+        type: "Unlocks",
+        description: "Starport unlocks the Fusion Core."
+      },
+      {
+        fromName: "Starport",
+        toName: "Tech Lab",
+        type: "Supports Add-on",
+        description: "Starport can attach a Tech Lab for advanced air units and research."
+      },
+      {
+        fromName: "Starport",
+        toName: "Reactor",
+        type: "Supports Add-on",
+        description: "Starport can attach a Reactor for double production of base-tier aircraft."
+      },
+      {
+        fromName: "Tech Lab",
+        toName: "Raven",
+        type: "Requires Tech Lab",
+        description: "Raven requires a Starport with Tech Lab."
+      },
+      {
+        fromName: "Tech Lab",
+        toName: "Banshee",
+        type: "Requires Tech Lab",
+        description: "Banshee requires a Starport with Tech Lab."
+      },
+      {
+        fromName: "Tech Lab",
+        toName: "Battlecruiser",
+        type: "Requires Tech Lab",
+        description: "Battlecruiser requires a Starport with Tech Lab."
+      },
+      {
+        fromName: "Fusion Core",
+        toName: "Battlecruiser",
+        type: "Unlocks",
+        description: "Fusion Core unlocks Battlecruiser production."
+      }
+    ];
+
+    const groupStyles = {
+      resource: {
+        shape: "diamond",
+        color: { background: "#f4c36a", border: "#c38f24", highlight: { background: "#ffd785", border: "#8e6310" } }
+      },
+      worker: {
+        shape: "ellipse",
+        color: { background: "#87c26b", border: "#4d8b38", highlight: { background: "#9fd882", border: "#36681f" } }
+      },
+      tier1: {
+        shape: "box",
+        color: { background: "#7ca8cc", border: "#416b8c", highlight: { background: "#99c1e2", border: "#244b69" } }
+      },
+      tier15: {
+        shape: "box",
+        color: { background: "#e7a46f", border: "#a95f25", highlight: { background: "#f0b580", border: "#7d4418" } }
+      },
+      addon: {
+        shape: "hexagon",
+        color: { background: "#a7d5cd", border: "#49857c", highlight: { background: "#bde6df", border: "#2f645c" } }
+      },
+      tier2: {
+        shape: "box",
+        color: { background: "#c97a7c", border: "#8d4145", highlight: { background: "#d99496", border: "#6b2529" } }
+      },
+      tier25: {
+        shape: "box",
+        color: { background: "#b18ea5", border: "#744f69", highlight: { background: "#c1a2b6", border: "#533449" } }
+      },
+      tier3: {
+        shape: "box",
+        color: { background: "#75b9be", border: "#35747a", highlight: { background: "#90d0d4", border: "#1d5960" } }
+      },
+      tier35: {
+        shape: "box",
+        color: { background: "#8f98b3", border: "#55607b", highlight: { background: "#a7b1c9", border: "#36405c" } }
+      }
+    };
+
+    const edgeStyles = {
+      Produces: { color: "#2f7d4a", width: 2.6 },
+      Unlocks: { color: "#2f6ea0", width: 2.4 },
+      Requires: { color: "#6b7c8c", width: 2.2, dashes: true },
+      Harvests: { color: "#b87a17", width: 2.4, dashes: [6, 4] },
+      Provides: { color: "#5f4db6", width: 2.4, dashes: [2, 5] },
+      Builds: { color: "#8d5a2d", width: 2.2 },
+      "Requires Tech Lab": { color: "#7c4bc7", width: 2.4, dashes: [8, 5] },
+      "Supports Add-on": { color: "#19828b", width: 2.1, dashes: [3, 4] }
+    };
+
+    const groupLabels = {
+      resource: "Resource",
+      worker: "Worker",
+      tier1: "Tier 1",
+      tier15: "Tier 1.5",
+      tier2: "Tier 2",
+      tier25: "Tier 2.5",
+      tier3: "Tier 3",
+      tier35: "Tier 3.5",
+      addon: "Add-on"
+    };
+
+    const terranImageFiles = [
+      "img/terran/Factory.jpg",
+      "img/terran/SC2SupplyDepot.jpg",
+      "img/terran/SC2Fusion_Core.jpg",
+      "img/terran/SC2Thor.jpg",
+      "img/terran/SC2Reactor.jpg",
+      "img/terran/SC2Medivac.jpg",
+      "img/terran/SC2Marauder.jpg",
+      "img/terran/SC2Viking.jpg",
+      "img/terran/SC2Raven.jpg",
+      "img/terran/SC2Liberator.jpg",
+      "img/terran/SC2Marine.jpg",
+      "img/terran/SC2Hellion.jpg",
+      "img/terran/SC2CommandCenter.jpg",
+      "img/terran/SC2Reaper.jpg",
+      "img/terran/SC2SCV.jpg",
+      "img/terran/SC2SiegeTank.jpg",
+      "img/terran/SC2SensorTower.jpg",
+      "img/terran/SC2Battlecruiser.jpg",
+      "img/terran/SC2Ghost.jpg",
+      "img/terran/SC2WidowMine.jpg",
+      "img/terran/SC2Refinery.jpg",
+      "img/terran/SC2Barracks.jpg",
+      "img/terran/SC2Cyclone.jpg",
+      "img/terran/SC2Bunker.jpg",
+      "img/terran/SC2TechLab.jpg",
+      "img/terran/SC2Banshee.jpg",
+      "img/terran/SC2MissileTurret.jpg",
+      "img/terran/SC2GhostAcademy.jpg",
+      "img/terran/SC2Armory.jpg",
+      "img/terran/SC2Starport.jpg",
+      "img/terran/SC2EngineeringBay.jpg"
+    ];
+
+    const infoPanel = document.getElementById("info-panel");
+
+    function normalizeAssetKey(value) {
+      return String(value)
+        .toLowerCase()
+        .replace(/^sc2/, "")
+        .replace(/[^a-z0-9]+/g, "");
+    }
+
+    const terranImageMap = Object.fromEntries(
+      terranImageFiles.map((path) => {
+        const filename = path.split("/").pop().replace(/\.[^.]+$/, "");
+        return [normalizeAssetKey(filename), path];
+      })
+    );
+
+    const nameToId = Object.fromEntries(rawNodes.map((node, index) => [node.name, index + 1]));
+    const nodesById = Object.fromEntries(rawNodes.map((node, index) => [index + 1, node]));
+
+    const visNodes = new vis.DataSet(
+      rawNodes.map((node, index) => ({
+        id: index + 1,
+        label: node.label,
+        group: node.group,
+        x: node.x,
+        y: node.y,
+        title: node.name,
+        physics: false,
+        fixed: {
+          x: true,
+          y: true
+        },
+        font: {
+          color: "#10212d",
+          face: "Avenir Next, Segoe UI, sans-serif",
+          size: 16,
+          bold: {
+            color: "#10212d",
+            face: "Avenir Next, Segoe UI, sans-serif",
+            size: 16
+          }
+        },
+        margin: 14
+      }))
+    );
+
+    const visEdges = new vis.DataSet(
+      rawRelations.map((relation, index) => {
+        const style = edgeStyles[relation.type] || { color: "#6b7c8c", width: 2 };
+        return {
+          id: index + 1,
+          from: nameToId[relation.fromName],
+          to: nameToId[relation.toName],
+          arrows: "to",
+          color: { color: style.color, highlight: style.color, hover: style.color },
+          width: style.width,
+          dashes: style.dashes || false,
+          title: relation.type + ": " + relation.description,
+          relationType: relation.type,
+          description: relation.description,
+          fromName: relation.fromName,
+          toName: relation.toName,
+          smooth: false
+        };
+      })
+    );
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function formatCostValue(value) {
+      return value === null || value === undefined ? "N/A" : String(value);
+    }
+
+    function renderTags(items) {
+      return '<div class="tag-list">' + items.map((item) => '<span class="tag">' + escapeHtml(item) + "</span>").join("") + "</div>";
+    }
+
+    function renderSection(title, items) {
+      if (!items || !items.length) {
+        return "";
+      }
+      return '<section class="section"><h3>' + escapeHtml(title) + "</h3>" + renderTags(items) + "</section>";
+    }
+
+    function renderNodeImage(node) {
+      const imagePath = terranImageMap[normalizeAssetKey(node.name)];
+      if (!imagePath) {
+        return [
+          '<div class="media-card">',
+          '<div class="image-empty">No local image found for ' + escapeHtml(node.name) + ' in <code>img/terran</code>.</div>',
+          "</div>"
+        ].join("");
+      }
+
+      return [
+        '<div class="media-card">',
+        '<img class="node-image" src="' + escapeHtml(imagePath) + '" alt="' + escapeHtml(node.name) + '" loading="lazy" />',
+        "</div>"
+      ].join("");
+    }
+
+    function renderLegend() {
+      const legendItems = [
+        ["resource", "Resource"],
+        ["worker", "Worker"],
+        ["tier1", "Tier 1"],
+        ["tier15", "Tier 1.5"],
+        ["tier2", "Tier 2"],
+        ["tier25", "Tier 2.5"],
+        ["tier3", "Tier 3"],
+        ["tier35", "Tier 3.5"],
+        ["addon", "Add-on"]
+      ];
+
+      return (
+        '<section class="section"><h3>Legend</h3><div class="legend">' +
+        legendItems
+          .map(([group, label]) => {
+            const swatch = groupStyles[group].color.background;
+            return '<span class="legend-item"><span class="swatch" style="background:' + swatch + ';"></span>' + escapeHtml(label) + "</span>";
+          })
+          .join("") +
+        "</div></section>"
+      );
+    }
+
+    function renderDefaultPanel() {
+      infoPanel.innerHTML = [
+        '<p class="info-kicker">Info Panel</p>',
+        '<h2 class="info-title">Terran Production Map</h2>',
+        '<p class="info-lead">Select a node to inspect its description, costs, requirements, and outputs. Select an edge to read the exact relationship between two tech nodes.</p>',
+        '<div class="meta">Tip: scroll to zoom, drag the canvas to pan, drag nodes to rearrange.</div>',
+        renderLegend(),
+        '<section class="section"><h3>Scope</h3><p class="info-lead">This map uses only the supplied Terran units, structures, resources, and add-ons. Upgrade targets named in the sidebar, such as Orbital Command or Planetary Fortress, are preserved in the node details even when they are not separate graph nodes.</p></section>'
+      ].join("");
+    }
+
+    function renderNodePanel(node) {
+      const details = node.details || {};
+      const cost = details.cost || {};
+      const sectionHtml = [
+        renderSection("Requires", details.requires),
+        renderSection("Produces", details.produces),
+        renderSection("Unlocks", details.unlocks),
+        renderSection("Upgrades To", details.upgradesTo),
+        renderSection("Provides", details.provides),
+        renderSection("Builds", details.builds),
+        renderSection("Harvests", details.harvests),
+        renderSection("Attaches To", details.attachesTo),
+        renderSection("Effect", details.effect),
+        renderSection("Used For", details.usedFor),
+        renderSection("Provided By", details.providedBy),
+        renderSection("Add-ons", details.addOns)
+      ].join("");
+
+      infoPanel.innerHTML = [
+        '<p class="info-kicker">Node</p>',
+        '<h2 class="info-title">' + escapeHtml(node.name) + "</h2>",
+        '<div class="meta">' + escapeHtml(groupLabels[node.group] || node.group) + "</div>",
+        renderNodeImage(node),
+        '<p class="info-lead">' + escapeHtml(details.description || "No description provided.") + "</p>",
+        '<section class="section"><h3>Costs</h3>',
+        '<div class="stats">',
+        '<div class="stat-card"><strong>' + formatCostValue(cost.minerals) + '</strong><span>Minerals</span></div>',
+        '<div class="stat-card"><strong>' + formatCostValue(cost.gas) + '</strong><span>Gas</span></div>',
+        '<div class="stat-card"><strong>' + formatCostValue(cost.supply) + '</strong><span>Supply</span></div>',
+        "</div></section>",
+        sectionHtml
+      ].join("");
+    }
+
+    function renderEdgePanel(edge) {
+      infoPanel.innerHTML = [
+        '<p class="info-kicker">Relationship</p>',
+        '<h2 class="info-title">' + escapeHtml(edge.relationType) + "</h2>",
+        '<div class="relationship-card">',
+        '<strong>' + escapeHtml(edge.fromName) + " -> " + escapeHtml(edge.toName) + "</strong>",
+        '<p>' + escapeHtml(edge.description) + "</p>",
+        "</div>",
+        '<section class="section"><h3>Interpretation</h3><p class="info-lead">This arrow shows how the source node contributes to, unlocks, produces, or enables the target node inside the Terran tech tree.</p></section>'
+      ].join("");
+    }
+
+    renderDefaultPanel();
+
+    const container = document.getElementById("network");
+    const data = { nodes: visNodes, edges: visEdges };
+    const options = {
+      autoResize: true,
+      physics: false,
+      groups: groupStyles,
+      nodes: {
+        borderWidth: 2,
+        borderWidthSelected: 3,
+        shadow: {
+          enabled: true,
+          color: "rgba(23, 35, 47, 0.18)",
+          size: 16,
+          x: 0,
+          y: 8
+        }
+      },
+      edges: {
+        arrows: {
+          to: {
+            enabled: true,
+            scaleFactor: 0.78
+          }
+        },
+        selectionWidth: 4,
+        hoverWidth: 3,
+        smooth: false
+      },
+      interaction: {
+        dragNodes: true,
+        dragView: true,
+        zoomView: true,
+        hover: true,
+        navigationButtons: true,
+        keyboard: true,
+        tooltipDelay: 100
+      }
+    };
+
+    const network = new vis.Network(container, data, options);
+
+    let fitTimer = null;
+    let lastViewportWidth = window.innerWidth;
+    let lastViewportHeight = window.innerHeight;
+    let wasCompactViewport = window.matchMedia("(max-width: 980px)").matches;
+
+    function scheduleNetworkFit(delay) {
+      window.clearTimeout(fitTimer);
+      fitTimer = window.setTimeout(function () {
+        network.redraw();
+        fitNetworkToViewport();
+      }, delay || 0);
+    }
+
+    function fitNetworkToViewport() {
+      network.fit({ animation: false });
+
+      if (window.matchMedia("(max-width: 980px)").matches) {
+        network.moveTo({
+          position: network.getViewPosition(),
+          scale: network.getScale() * 0.92,
+          animation: false
+        });
+      }
+    }
+
+    scheduleNetworkFit(80);
+
+    window.addEventListener("resize", function () {
+      const widthDelta = Math.abs(window.innerWidth - lastViewportWidth);
+      const heightDelta = Math.abs(window.innerHeight - lastViewportHeight);
+      const isCompactViewport = window.matchMedia("(max-width: 980px)").matches;
+      const viewportModeChanged = isCompactViewport !== wasCompactViewport;
+
+      lastViewportWidth = window.innerWidth;
+      lastViewportHeight = window.innerHeight;
+      wasCompactViewport = isCompactViewport;
+
+      if (viewportModeChanged || widthDelta > 60 || heightDelta > 140) {
+        scheduleNetworkFit(140);
+      }
+    }, { passive: true });
+
+    window.addEventListener("orientationchange", function () {
+      scheduleNetworkFit(180);
+    }, { passive: true });
+
+    window.addEventListener("pageshow", function () {
+      scheduleNetworkFit(60);
+    });
+
+    network.once("stabilized", function () {
+      fitNetworkToViewport();
+    });
+
+    network.on("click", function (params) {
+      if (params.nodes.length) {
+        renderNodePanel(nodesById[params.nodes[0]]);
+        return;
+      }
+
+      if (params.edges.length) {
+        renderEdgePanel(visEdges.get(params.edges[0]));
+        return;
+      }
+
+      renderDefaultPanel();
+    });
+  </script>
+</body>
+</html>
