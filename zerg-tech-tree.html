@@ -333,6 +333,40 @@
       line-height: 1.5;
     }
 
+    .media-card {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 20px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03)),
+        rgba(8, 12, 20, 0.24);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .node-image {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .image-empty {
+      display: grid;
+      place-items: center;
+      min-height: 170px;
+      text-align: center;
+      padding: 18px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px dashed rgba(255, 255, 255, 0.12);
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+
     @media (max-width: 1180px) {
       .app {
         grid-template-columns: minmax(0, 1.8fr) minmax(270px, 0.95fr);
@@ -436,7 +470,6 @@
           </div>
           <div class="canvas-actions">
             <a class="header-link" href="index.html">Back to Wiki</a>
-            <div class="canvas-badge">Vis Network</div>
           </div>
         </div>
         <div id="network"></div>
@@ -1524,7 +1557,57 @@
       tier3: "Tier 3"
     };
 
+    const zergImageFiles = [
+      "img/zerg/SC2SpineCrawler.jpg",
+      "img/zerg/SC2Spire.jpg",
+      "img/zerg/SC2Hydralisk.jpg",
+      "img/zerg/SC2HydraliskDen.jpg",
+      "img/zerg/SC2EvolutionChamber.jpg",
+      "img/zerg/SC2Mutalisk.jpg",
+      "img/zerg/SC2Overseer.jpg",
+      "img/zerg/SC2Lurker.jpg",
+      "img/zerg/SC2UltraliskCavern.jpg",
+      "img/zerg/SC2Lair.jpg",
+      "img/zerg/SC2SporeCrawler.jpg",
+      "img/zerg/SC2Overlord.jpg",
+      "img/zerg/SC2Hive.jpg",
+      "img/zerg/SC2Extractor.jpg",
+      "img/zerg/SC2BanelingNest.jpg",
+      "img/zerg/SC2Roach.jpg",
+      "img/zerg/SC2Hatchery.jpg",
+      "img/zerg/SC2GreaterSpire.jpg",
+      "img/zerg/SC2Baneling.jpg",
+      "img/zerg/SC2LurkerDen.jpg",
+      "img/zerg/SC2RoachWarren.jpg",
+      "img/zerg/SC2Infestor.jpg",
+      "img/zerg/SC2SwarmHost.jpg",
+      "img/zerg/SC2Queen.jpg",
+      "img/zerg/SC2SpawningPool.jpg",
+      "img/zerg/SC2InfestationPit.jpg",
+      "img/zerg/SC2Drone.jpg",
+      "img/zerg/SC2BroodLord.jpg",
+      "img/zerg/SC2Corruptor.jpg",
+      "img/zerg/SC2NydusNetwork.jpg",
+      "img/zerg/SC2Zergling.jpg",
+      "img/zerg/SC2Ultralisk.jpg",
+      "img/zerg/SC2Viper.jpg"
+    ];
+
     const infoPanel = document.getElementById("info-panel");
+
+    function normalizeAssetKey(value) {
+      return String(value)
+        .toLowerCase()
+        .replace(/^sc2/, "")
+        .replace(/[^a-z0-9]+/g, "");
+    }
+
+    const zergImageMap = Object.fromEntries(
+      zergImageFiles.map((path) => {
+        const filename = path.split("/").pop().replace(/\.[^.]+$/, "");
+        return [normalizeAssetKey(filename), path];
+      })
+    );
 
     const nameToId = Object.fromEntries(rawNodes.map((node, index) => [node.name, index + 1]));
     const nodesById = Object.fromEntries(rawNodes.map((node, index) => [index + 1, node]));
@@ -1601,6 +1684,23 @@
       return '<section class="section"><h3>' + escapeHtml(title) + "</h3>" + renderTags(items) + "</section>";
     }
 
+    function renderNodeImage(node) {
+      const imagePath = zergImageMap[normalizeAssetKey(node.name)];
+      if (!imagePath) {
+        return [
+          '<div class="media-card">',
+          '<div class="image-empty">No local image found for ' + escapeHtml(node.name) + ' in <code>img/zerg</code>.</div>',
+          "</div>"
+        ].join("");
+      }
+
+      return [
+        '<div class="media-card">',
+        '<img class="node-image" src="' + escapeHtml(imagePath) + '" alt="' + escapeHtml(node.name) + '" loading="lazy" />',
+        "</div>"
+      ].join("");
+    }
+
     function renderLegend() {
       const legendItems = [
         ["resource", "Resource"],
@@ -1660,6 +1760,7 @@
         '<p class="info-kicker">Node</p>',
         '<h2 class="info-title">' + escapeHtml(node.name) + "</h2>",
         '<div class="meta">' + escapeHtml(groupLabels[node.group] || node.group) + "</div>",
+        renderNodeImage(node),
         '<p class="info-lead">' + escapeHtml(details.description || "No description provided.") + "</p>",
         '<section class="section"><h3>Costs</h3>',
         '<div class="stats">',

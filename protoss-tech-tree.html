@@ -333,6 +333,40 @@
       line-height: 1.5;
     }
 
+    .media-card {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 20px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03)),
+        rgba(8, 12, 20, 0.24);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .node-image {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .image-empty {
+      display: grid;
+      place-items: center;
+      min-height: 170px;
+      text-align: center;
+      padding: 18px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px dashed rgba(255, 255, 255, 0.12);
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+
     @media (max-width: 1180px) {
       .app {
         grid-template-columns: minmax(0, 1.8fr) minmax(270px, 0.95fr);
@@ -436,7 +470,6 @@
           </div>
           <div class="canvas-actions">
             <a class="header-link" href="index.html">Back to Wiki</a>
-            <div class="canvas-badge">Vis Network</div>
           </div>
         </div>
         <div id="network"></div>
@@ -1520,7 +1553,61 @@
       tier3: "Tier 3"
     };
 
+    const protossImageFiles = [
+      "img/protoss/SC2DarkShrine.jpg",
+      "img/protoss/SC2Stargate.jpg",
+      "img/protoss/SC2Stalker.jpg",
+      "img/protoss/SC2TemplarArchives.jpg",
+      "img/protoss/SC2Observer.jpg",
+      "img/protoss/SC2FleetBeacon.jpg",
+      "img/protoss/SC2Immortal.jpg",
+      "img/protoss/SC2Phoenix.jpg",
+      "img/protoss/SC2Adept.jpg",
+      "img/protoss/SC2PhotonCannon.jpg",
+      "img/protoss/SC2Colossus.jpg",
+      "img/protoss/SC2WarpPrismFlying.jpg",
+      "img/protoss/SC2Forge.jpg",
+      "img/protoss/SC2CyberneticsCore.jpg",
+      "img/protoss/SC2Zealot.jpg",
+      "img/protoss/SC2HighTemplar.jpg",
+      "img/protoss/SC2Tempest.jpg",
+      "img/protoss/SC2Assimilator.jpg",
+      "img/protoss/SC2Disruptor.jpg",
+      "img/protoss/SC2Gateway.jpg",
+      "img/protoss/SC2Oracle.jpg",
+      "img/protoss/SC2Void_Ray.jpg",
+      "img/protoss/SC2ShieldBattery.jpg",
+      "img/protoss/SC2DarkTemplar.jpg",
+      "img/protoss/SC2RoboticsBay.jpg",
+      "img/protoss/SC2Sentry.jpg",
+      "img/protoss/SC2Archon.jpg",
+      "img/protoss/SC2Nexus.jpg",
+      "img/protoss/SC2RoboticsFacility.jpg",
+      "img/protoss/SC2TwilightCouncil.jpg",
+      "img/protoss/SC2WarpGate.jpg",
+      "img/protoss/SC2Probe.jpg",
+      "img/protoss/SC2Mothership.jpg",
+      "img/protoss/SC2Carrier.jpg",
+      "img/protoss/SC2Pylon.jpg"
+    ];
+
     const infoPanel = document.getElementById("info-panel");
+
+    function normalizeAssetKey(value) {
+      return String(value)
+        .toLowerCase()
+        .replace(/^sc2/, "")
+        .replace(/[^a-z0-9]+/g, "");
+    }
+
+    const protossImageMap = Object.fromEntries(
+      protossImageFiles.map((path) => {
+        const filename = path.split("/").pop().replace(/\.[^.]+$/, "");
+        return [normalizeAssetKey(filename), path];
+      })
+    );
+
+    protossImageMap[normalizeAssetKey("Warp Prism")] = "img/protoss/SC2WarpPrismFlying.jpg";
 
     const nameToId = Object.fromEntries(rawNodes.map((node, index) => [node.name, index + 1]));
     const nodesById = Object.fromEntries(rawNodes.map((node, index) => [index + 1, node]));
@@ -1597,6 +1684,23 @@
       return '<section class="section"><h3>' + escapeHtml(title) + "</h3>" + renderTags(items) + "</section>";
     }
 
+    function renderNodeImage(node) {
+      const imagePath = protossImageMap[normalizeAssetKey(node.name)];
+      if (!imagePath) {
+        return [
+          '<div class="media-card">',
+          '<div class="image-empty">No local image found for ' + escapeHtml(node.name) + ' in <code>img/protoss</code>.</div>',
+          "</div>"
+        ].join("");
+      }
+
+      return [
+        '<div class="media-card">',
+        '<img class="node-image" src="' + escapeHtml(imagePath) + '" alt="' + escapeHtml(node.name) + '" loading="lazy" />',
+        "</div>"
+      ].join("");
+    }
+
     function renderLegend() {
       const legendItems = [
         ["resource", "Resource"],
@@ -1658,6 +1762,7 @@
         '<p class="info-kicker">Node</p>',
         '<h2 class="info-title">' + escapeHtml(node.name) + "</h2>",
         '<div class="meta">' + escapeHtml(groupLabels[node.group] || node.group) + "</div>",
+        renderNodeImage(node),
         '<p class="info-lead">' + escapeHtml(details.description || "No description provided.") + "</p>",
         '<section class="section"><h3>Costs</h3>',
         '<div class="stats">',
