@@ -161,24 +161,42 @@
     }
 
     .canvas-actions {
-      display: flex;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
       align-items: center;
       gap: 12px;
-      flex-wrap: wrap;
-      justify-content: space-between;
     }
 
     .header-link {
+      appearance: none;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       border-radius: 16px;
       padding: 10px 14px;
       text-decoration: none;
+      font: inherit;
       font-weight: 600;
       color: var(--text);
+      cursor: pointer;
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .canvas-links {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .view-mode-toggle[aria-pressed="true"] {
+      color: #09111a;
+      background:
+        linear-gradient(135deg, rgba(236, 194, 99, 0.92), rgba(255, 255, 255, 0.82)),
+        rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.18);
     }
 
     .canvas-badge {
@@ -251,11 +269,14 @@
       background: linear-gradient(135deg, rgba(236, 194, 99, 0.24), rgba(255, 255, 255, 0.08));
     }
 
-    .playback-panel {
-      padding: 16px 18px 18px;
-      display: grid;
-      gap: 14px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    .view-panel {
+      min-width: 0;
+      padding: 14px 16px;
+      min-height: 68px;
+      display: flex;
+      align-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
       background:
         radial-gradient(circle at top left, rgba(90, 178, 255, 0.14), transparent 26%),
         radial-gradient(circle at 88% 22%, rgba(236, 194, 99, 0.12), transparent 18%),
@@ -263,35 +284,20 @@
         rgba(9, 14, 24, 0.42);
     }
 
-    .playback-head {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 14px;
-      flex-wrap: wrap;
-    }
-
-    .playback-kicker {
-      margin: 0 0 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      font-size: 0.72rem;
-      color: var(--accent-2);
-      font-weight: 800;
-    }
-
-    .playback-title {
-      margin: 0;
-      font-size: 1.02rem;
-      line-height: 1.15;
-      color: var(--text);
+    .view-panel .canvas-subtitle {
+      max-width: none;
     }
 
     .playback-controls {
+      width: 100%;
       display: grid;
       grid-template-columns: auto minmax(0, 1fr) auto;
       align-items: center;
       gap: 14px;
+    }
+
+    .playback-controls[hidden] {
+      display: none;
     }
 
     .playback-button {
@@ -318,6 +324,13 @@
       box-shadow: 0 14px 28px rgba(0, 0, 0, 0.2);
     }
 
+    .playback-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.58;
+      transform: none;
+      box-shadow: none;
+    }
+
     .playback-button[aria-pressed="true"] {
       color: #09111a;
       background:
@@ -330,6 +343,11 @@
       margin: 0;
       accent-color: var(--accent-2);
       cursor: pointer;
+    }
+
+    .playback-slider:disabled {
+      cursor: not-allowed;
+      opacity: 0.58;
     }
 
     .time-readout {
@@ -565,6 +583,14 @@
         align-items: flex-start;
       }
 
+      .canvas-actions {
+        grid-template-columns: 1fr;
+      }
+
+      .canvas-links {
+        justify-content: flex-start;
+      }
+
       .playback-controls {
         grid-template-columns: 1fr;
       }
@@ -619,12 +645,12 @@
         padding: 0 10px;
       }
 
-      .playback-panel {
-        padding: 14px 14px 16px;
+      .view-panel {
+        padding: 13px 13px 15px;
       }
 
-      .playback-title {
-        font-size: 0.95rem;
+      .canvas-links {
+        width: 100%;
       }
 
       #network {
@@ -655,33 +681,29 @@
             </div>
           </div>
           <div class="canvas-actions">
-            <p class="canvas-subtitle">
-              Drag nodes, zoom the map, scrub the opening, and click any node or arrow for details.
-            </p>
-            <a class="header-link" href="index.html">Back to Wiki</a>
-          </div>
-        </div>
-        <div class="playback-panel" aria-label="Build order playback slider">
-          <div class="playback-head">
-            <div>
-              <p class="playback-kicker">Build Order Playback</p>
-              <h2 class="playback-title" id="build-order-name">Reaper Fast Expand into 1-1-1</h2>
+            <div class="view-panel" id="view-panel" data-view-mode="full">
+              <p class="canvas-subtitle" id="view-tip">
+                Drag nodes, zoom the map, and click any node or arrow for details.
+              </p>
+              <div class="playback-controls" id="playback-controls" hidden>
+                <button class="playback-button" id="build-order-toggle" type="button" aria-pressed="false">Play</button>
+                <input
+                  class="playback-slider"
+                  id="build-order-slider"
+                  type="range"
+                  min="0"
+                  max="300"
+                  value="0"
+                  step="1"
+                  aria-label="Build order timeline"
+                />
+                <div class="time-readout" id="build-order-time" aria-live="polite">Time: 0:00</div>
+              </div>
             </div>
-            <div class="canvas-badge" id="build-order-range">0:00 to 5:00</div>
-          </div>
-          <div class="playback-controls">
-            <button class="playback-button" id="build-order-toggle" type="button" aria-pressed="false">Play</button>
-            <input
-              class="playback-slider"
-              id="build-order-slider"
-              type="range"
-              min="0"
-              max="300"
-              value="0"
-              step="1"
-              aria-label="Build order timeline"
-            />
-            <div class="time-readout" id="build-order-time" aria-live="polite">Time: 0:00</div>
+            <div class="canvas-links">
+              <button class="header-link view-mode-toggle" id="view-mode-toggle" type="button" aria-pressed="false">View Build Order</button>
+              <a class="header-link" href="index.html">Back to Wiki</a>
+            </div>
           </div>
         </div>
         <div id="network"></div>
@@ -1689,8 +1711,6 @@
       );
     }
 
-    const initialVisibleNodeIds = getVisibleNodeIdsAtTime(0);
-
     const visNodes = new vis.DataSet(
       rawNodes.map((node) => ({
         id: node.name,
@@ -1699,7 +1719,7 @@
         x: node.x,
         y: node.y,
         title: node.name,
-        hidden: !initialVisibleNodeIds.has(node.name),
+        hidden: false,
         physics: false,
         fixed: {
           x: true,
@@ -1730,7 +1750,7 @@
           color: { color: style.color, highlight: style.color, hover: style.color },
           width: style.width,
           dashes: style.dashes || false,
-          hidden: !(initialVisibleNodeIds.has(relation.fromName) && initialVisibleNodeIds.has(relation.toName)),
+          hidden: false,
           title: relation.type + ": " + relation.description,
           relationType: relation.type,
           description: relation.description,
@@ -1813,7 +1833,7 @@
         '<p class="info-kicker">Info Panel</p>',
         '<h2 class="info-title">Terran Production Map</h2>',
         '<p class="info-lead">Select a node to inspect its description, costs, requirements, and outputs. Select an edge to read the exact relationship between two tech nodes.</p>',
-        '<div class="meta">Tip: scrub the build slider to reveal the opener, then click any visible node or edge for details.</div>',
+        '<div class="meta">Tip: use the header toggle to switch between the full tech tree and the timed build-order playback.</div>',
         renderLegend(),
         '<section class="section"><h3>Scope</h3><p class="info-lead">This map uses only the supplied Terran units, structures, resources, and add-ons. The build playback now reveals a Reaper fast expand opener directly on the main tech tree timeline.</p></section>'
       ].join("");
@@ -1908,20 +1928,23 @@
     };
 
     const network = new vis.Network(container, data, options);
-    const playbackTitle = document.getElementById("build-order-name");
-    const playbackRange = document.getElementById("build-order-range");
+    const viewPanel = document.getElementById("view-panel");
+    const viewTip = document.getElementById("view-tip");
+    const playbackControls = document.getElementById("playback-controls");
     const playbackSlider = document.getElementById("build-order-slider");
     const playbackTime = document.getElementById("build-order-time");
     const playbackToggle = document.getElementById("build-order-toggle");
+    const viewModeToggle = document.getElementById("view-mode-toggle");
 
     let fitTimer = null;
     let playbackTimer = null;
+    let currentViewMode = "full";
     let lastViewportWidth = window.innerWidth;
     let lastViewportHeight = window.innerHeight;
     let wasCompactViewport = window.matchMedia("(max-width: 980px)").matches;
-    const graphBounds = rawNodes
-      .filter((node) => buildOrderNodeIds.has(node.name))
-      .reduce(
+
+    function computeGraphBounds(nodes) {
+      return nodes.reduce(
         function (bounds, node) {
           return {
             minX: Math.min(bounds.minX, node.x),
@@ -1932,6 +1955,12 @@
         },
         { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity }
       );
+    }
+
+    const fullGraphBounds = computeGraphBounds(rawNodes);
+    const buildGraphBounds = computeGraphBounds(
+      rawNodes.filter((node) => buildOrderNodeIds.has(node.name))
+    );
 
     function scheduleNetworkFit(delay) {
       window.clearTimeout(fitTimer);
@@ -1948,6 +1977,7 @@
         return;
       }
 
+      const graphBounds = currentViewMode === "build" ? buildGraphBounds : fullGraphBounds;
       const horizontalPadding = 440;
       const verticalPadding = 360;
       const spanX = graphBounds.maxX - graphBounds.minX + horizontalPadding;
@@ -1977,6 +2007,35 @@
     function setPlaybackButtonState(isPlaying) {
       playbackToggle.textContent = isPlaying ? "Pause" : "Play";
       playbackToggle.setAttribute("aria-pressed", String(isPlaying));
+    }
+
+    function setPlaybackSliderTime(currentTime) {
+      playbackSlider.setAttribute("aria-valuetext", formatPlaybackTime(currentTime));
+      playbackTime.textContent = "Time: " + formatPlaybackTime(currentTime);
+    }
+
+    function showFullTechTree() {
+      visNodes.update(
+        rawNodes.map((node) => ({
+          id: node.name,
+          hidden: false
+        }))
+      );
+
+      visEdges.update(
+        rawRelations.map((relation, index) => ({
+          id: "edge-" + (index + 1),
+          hidden: false
+        }))
+      );
+    }
+
+    function setPlaybackControlsEnabled(isEnabled) {
+      viewPanel.dataset.viewMode = isEnabled ? "build" : "full";
+      viewTip.hidden = isEnabled;
+      playbackControls.hidden = !isEnabled;
+      playbackToggle.disabled = !isEnabled;
+      playbackSlider.disabled = !isEnabled;
     }
 
     function stopPlayback() {
@@ -2025,8 +2084,25 @@
         })
       );
 
-      playbackTime.textContent = "Time: " + formatPlaybackTime(currentTime);
+      setPlaybackSliderTime(currentTime);
       syncSelectionWithVisibility(visibleNodeIds, visibleEdgeIds);
+    }
+
+    function setViewMode(mode) {
+      const isBuildMode = mode === "build";
+      currentViewMode = isBuildMode ? "build" : "full";
+
+      if (isBuildMode) {
+        updateBuildOrderVisibility(Number(playbackSlider.value));
+      } else {
+        stopPlayback();
+        showFullTechTree();
+      }
+
+      setPlaybackControlsEnabled(isBuildMode);
+      viewModeToggle.textContent = isBuildMode ? "View Full Tech Tree" : "View Build Order";
+      viewModeToggle.setAttribute("aria-pressed", String(isBuildMode));
+      scheduleNetworkFit(60);
     }
 
     function startPlayback() {
@@ -2054,13 +2130,12 @@
         if (nextTime >= buildOrderDuration) {
           stopPlayback();
         }
-      }, 50);
+      }, 100);
     }
 
     playbackSlider.max = String(buildOrderDuration);
-    playbackTitle.textContent = buildOrderName;
-    playbackRange.textContent = "0:00 to " + formatPlaybackTime(buildOrderDuration);
     playbackToggle.setAttribute("aria-label", "Play or pause " + buildOrderName);
+    viewModeToggle.setAttribute("aria-label", "Toggle between the full tech tree and build order playback");
     playbackToggle.addEventListener("click", function () {
       if (playbackTimer !== null) {
         stopPlayback();
@@ -2071,11 +2146,20 @@
     });
 
     playbackSlider.addEventListener("input", function () {
-      updateBuildOrderVisibility(Number(playbackSlider.value));
+      const currentTime = Number(playbackSlider.value);
+      setPlaybackSliderTime(currentTime);
+
+      if (currentViewMode === "build") {
+        updateBuildOrderVisibility(currentTime);
+      }
     });
 
     setPlaybackButtonState(false);
-    updateBuildOrderVisibility(Number(playbackSlider.value));
+    setPlaybackSliderTime(Number(playbackSlider.value));
+    viewModeToggle.addEventListener("click", function () {
+      setViewMode(currentViewMode === "build" ? "full" : "build");
+    });
+    setViewMode("full");
 
     scheduleNetworkFit(80);
 
