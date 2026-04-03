@@ -1640,7 +1640,8 @@
       "img/terran/SC2GhostAcademy.jpg",
       "img/terran/SC2Armory.jpg",
       "img/terran/SC2Starport.jpg",
-      "img/terran/SC2EngineeringBay.jpg"
+      "img/terran/SC2EngineeringBay.jpg",
+      "img/terran/SC2OrbitalCommand.jpg"
     ];
 
     const infoPanel = document.getElementById("info-panel");
@@ -1672,32 +1673,45 @@
       name: "Reaper Fast Expand into 1-1-1",
       matchup: "TvX (Standard Opening)",
       difficulty: "Intermediate",
-      overview: "A standard Terran opener built around early Reaper scouting, a quick economic follow-up, and the Barracks-Factory-Starport 1-1-1 shell for flexible reactions.",
+      overview: "A standard Terran opener built around a quick Reaper scout, a fast natural Command Center, and a clean 1-1-1 transition that commonly branches into Reactor Marines, a Widow Mine or Cyclone, and Medivac pressure.",
       pros: ["Extremely safe", "Great scouting", "Flexible transition"],
-      cons: ["Requires solid macro while controlling the Reaper", "Early mistakes can delay the Factory-Starport curve"]
+      cons: ["Requires solid macro while controlling the Reaper", "Sloppy depot or add-on timing weakens the first pressure window"]
     };
     const buildOrder = [
-      { step: 1, time: 0, supply: 12, targetNode: "Command Center", qty: "1x", label: "Start with Command Center", note: "Queue SCVs immediately and keep mineral income uninterrupted." },
-      { step: 1, time: 0, supply: 12, targetNode: "SCV", qty: "12x start", label: "Start with SCV", note: "Your opening economy depends on constant SCV production from the first second." },
-      { step: 1, time: 0, supply: 12, targetNode: "Minerals", qty: "Primary income", label: "Start with Minerals", note: "Minerals fund the fast Depot, Barracks, and Command Center follow-up." },
-      { step: 2, time: 18, supply: 14, targetNode: "Supply Depot", qty: "1x", label: "Supply Depot", note: "Build at the top of your main ramp to start the wall and prevent an early supply block." },
-      { step: 3, time: 39, supply: 16, targetNode: "Barracks", qty: "1x", label: "Barracks", note: "Place it near the Depot so your wall-off stays clean and your first Reaper timing stays sharp." },
-      { step: 4, time: 45, supply: 16, targetNode: "Refinery", qty: "1x", label: "Refinery", note: "Put 3 SCVs on gas when it finishes so you can afford the first Reaper and Factory on time." },
-      { step: 5, time: 90, supply: 19, targetNode: "Reaper", qty: "1x", label: "Reaper", note: "Send it across the map immediately to scout tech, pressure lightly, and confirm how greedy the opponent is." },
-      { step: 6, time: 90, supply: 19, targetNode: "Vespene Gas", qty: "3x SCVs", label: "Vespene Gas", note: "Stable gas income keeps the Orbital, Factory, and add-on sequence from slipping." },
-      { step: 7, time: 105, supply: 19, targetNode: "Orbital Command", qty: "1x", label: "Orbital Command", note: "This is the standard Terran macro upgrade for energy, MULEs, and a stronger early economy." },
-      { step: 8, time: 120, supply: 21, targetNode: "Factory", qty: "1x", label: "Factory", note: "Factory completes the first half of the 1-1-1 core and unlocks Hellion or Widow Mine reactions." },
-      { step: 9, time: 135, supply: 22, targetNode: "Reactor", qty: "1x", label: "Reactor", note: "A Reactor on the Barracks is the standard branch for fast Marine production and later swaps." },
-      { step: 10, time: 150, supply: 22, targetNode: "Marine", qty: "1x", label: "Marine", note: "The early Marine helps deny scouting, anchors your defense, and keeps the Barracks active after the Reaper." },
-      { step: 11, time: 165, supply: 24, targetNode: "Starport", qty: "1x", label: "Starport", note: "This completes the 1-1-1 shell and gives maximum follow-up flexibility into Medivac, Viking, or Liberator tech." },
-      { step: 12, time: 170, supply: 24, targetNode: "Hellion", qty: "1x", label: "Hellion", note: "A fast Hellion adds map control and pairs naturally with Reaper scouting against early light units." },
-      { step: 13, time: 200, supply: 28, targetNode: "Medivac", qty: "1x", label: "Medivac", note: "The Medivac opens drop threats, supports bio mobility, and is one of the most standard 1-1-1 follow-ups." },
-      { step: 14, time: 210, supply: 29, targetNode: "Widow Mine", qty: "1x", label: "Widow Mine", note: "A Widow Mine rounds out the opening with efficient defense and strong drop or zoning utility." }
+      { step: 1, time: 0, supply: 12, targetNode: "Command Center", qty: "1x start", note: "Queue SCVs immediately and keep mineral income uninterrupted from the opening frame." },
+      { step: 1, time: 0, supply: 12, targetNode: "SCV", qty: "12x start", note: "A standard Reaper expand depends on uninterrupted SCV production all the way to the natural." },
+      { step: 1, time: 0, supply: 12, targetNode: "Minerals", qty: "Primary income", note: "Minerals fund the ramp wall, natural Command Center, and continuous Marine production." },
+      { step: 2, time: 18, supply: 14, targetNode: "Supply Depot", qty: "1x", note: "Start the first Depot at the main ramp to begin a wall and avoid the first supply block." },
+      { step: 3, time: 32, supply: 15, targetNode: "Refinery", qty: "1x", note: "The first gas gives you the Reaper, Orbital, and Factory timing that defines the opener." },
+      { step: 4, time: 43, supply: 16, targetNode: "Barracks", qty: "1x", note: "This is the single-Barracks core of the standard Reaper fast expand opening." },
+      { step: 5, time: 88, supply: 19, targetNode: "Reaper", qty: "1x", note: "Rally it across the map immediately to scout tech, poke greed, and force your opponent to reveal intentions." },
+      { step: 6, time: 90, supply: 19, targetNode: "Orbital Command", qty: "Main base 1x", note: "Upgrade the main Command Center quickly for MULEs and Terran's normal economic snowball." },
+      { step: 7, time: 104, supply: 20, targetNode: "Command Center", qty: "2nd Command Center", note: "Expand behind the Reaper scout. This natural Command Center is the core economic payoff of the opener." },
+      { step: 8, time: 106, supply: 20, targetNode: "Supply Depot", qty: "2x total", note: "The second Depot keeps the Factory and Reactor phase from supply blocking as Marines start." },
+      { step: 9, time: 112, supply: 20, targetNode: "Vespene Gas", qty: "3x SCVs", note: "Saturate the first Refinery as it finishes so the gas curve stays on track for Factory and Starport tech." },
+      { step: 10, time: 121, supply: 20, targetNode: "Factory", qty: "1x", note: "Factory completes the first half of the 1-1-1 shell and opens standard Widow Mine, Cyclone, or Hellion branches." },
+      { step: 11, time: 129, supply: 21, targetNode: "Refinery", qty: "2x total", note: "The second gas is the missing piece that stabilizes Starport production and Medivac tech on time." },
+      { step: 12, time: 132, supply: 21, targetNode: "Reactor", qty: "Barracks add-on", note: "A Barracks Reactor is the standard follow-up for constant Marine production and later add-on swaps." },
+      { step: 13, time: 156, supply: 24, targetNode: "Marine", qty: "2x", note: "The first Reactor cycle gives two Marines for home defense and the coming Medivac pressure package." },
+      { step: 14, time: 160, supply: 24, targetNode: "Starport", qty: "1x", note: "This completes the 1-1-1 structure and gives the build its first real follow-up flexibility." },
+      { step: 15, time: 166, supply: 24, targetNode: "Widow Mine", qty: "1x", note: "The first Widow Mine is the standard harassment and defensive anchor in the classic 1-1-1 follow-up." },
+      { step: 16, time: 184, supply: 28, targetNode: "Marine", qty: "4x total", note: "Keep Marines cycling constantly so the first Medivac can leave with a meaningful payload instead of a token drop." },
+      { step: 17, time: 188, supply: 28, targetNode: "Orbital Command", qty: "2x total", note: "Upgrade the natural Command Center as soon as practical to keep MULE count and SCV tempo competitive." },
+      { step: 18, time: 196, supply: 30, targetNode: "Cyclone", qty: "1x", note: "A defensive Cyclone is a common safety piece while your Medivac is active across the map." },
+      { step: 19, time: 206, supply: 31, targetNode: "Medivac", qty: "1x", note: "The first Medivac unlocks the classic 1-Widow-Mine, 6-Marine pressure and your first meaningful map initiative." },
+      { step: 20, time: 214, supply: 32, targetNode: "Supply Depot", qty: "3x total", note: "Add another Depot before the next production spike so the drop follow-up does not stall at home." },
+      { step: 21, time: 226, supply: 34, targetNode: "Marine", qty: "6x total", note: "This Marine count matches the standard early Medivac pressure package and leaves enough defense at home." },
+      { step: 22, time: 238, supply: 35, targetNode: "Widow Mine", qty: "2x total", note: "A second Widow Mine reinforces the drop path or stays home to cover the vulnerable post-drop window." }
     ];
     const buildOrderNodeIds = new Set(buildOrder.map((step) => step.targetNode));
-    const buildOrderStepsByNode = Object.fromEntries(
-      buildOrder.map((step) => [step.targetNode, step])
-    );
+    const buildOrderStepsByNode = buildOrder.reduce((stepsByNode, step) => {
+      if (!stepsByNode[step.targetNode]) {
+        stepsByNode[step.targetNode] = [];
+      }
+
+      stepsByNode[step.targetNode].push(step);
+      return stepsByNode;
+    }, {});
 
     function assertKnownNodeId(nodeId, contextLabel) {
       if (!nodeIds.has(nodeId)) {
@@ -1720,6 +1734,10 @@
           .filter((step) => currentTime >= step.time)
           .map((step) => step.targetNode)
       );
+    }
+
+    function getRevealedBuildSteps(nodeName, currentTime) {
+      return (buildOrderStepsByNode[nodeName] || []).filter((step) => currentTime >= step.time);
     }
 
     const visNodes = new vis.DataSet(
@@ -1858,7 +1876,7 @@
         '<p class="info-lead">' + escapeHtml(buildOrderMeta.overview) + "</p>",
         '<section class="section"><h3>Pros</h3>' + renderTags(buildOrderMeta.pros) + "</section>",
         '<section class="section"><h3>Cons</h3>' + renderTags(buildOrderMeta.cons) + "</section>",
-        '<section class="section"><h3>Core Sequence</h3><p class="info-lead">Supply Depot -> Barracks -> Refinery -> Reaper -> Orbital Command -> Factory -> Reactor -> Starport.</p></section>',
+        '<section class="section"><h3>Core Sequence</h3><p class="info-lead">Supply Depot -> Refinery -> Barracks -> Reaper -> Orbital Command -> Command Center -> Factory -> Reactor -> Starport -> Widow Mine -> Medivac.</p></section>',
         renderLegend()
       ].join("");
     }
@@ -1901,14 +1919,11 @@
     function renderBuildOrderNodePanel(node) {
       const details = node.details || {};
       const cost = details.cost || {};
-      const step = buildOrderStepsByNode[node.name];
+      const currentTime = Number(playbackSlider.value);
+      const revealedSteps = getRevealedBuildSteps(node.name, currentTime);
+      const latestStep = revealedSteps.length ? revealedSteps[revealedSteps.length - 1] : null;
       const sectionHtml = [
-        step ? '<section class="section"><h3>Build Order Step</h3><div class="stats">' +
-          '<div class="stat-card"><strong>' + escapeHtml(String(step.step)) + '</strong><span>Step</span></div>' +
-          '<div class="stat-card"><strong>' + escapeHtml(formatPlaybackTime(step.time)) + '</strong><span>Time</span></div>' +
-          '<div class="stat-card"><strong>' + escapeHtml(String(step.supply)) + '</strong><span>Supply</span></div>' +
-          '</div></section>' : "",
-        step ? '<section class="section"><h3>Execution</h3><div class="meta">' + escapeHtml(step.qty) + '</div><p class="info-lead">' + escapeHtml(step.note) + "</p></section>" : "",
+        renderBuildOrderStepsSection(revealedSteps),
         renderSection("Requires", details.requires),
         renderSection("Produces", details.produces),
         renderSection("Unlocks", details.unlocks),
@@ -1927,9 +1942,9 @@
       infoPanel.innerHTML = [
         '<p class="info-kicker">Build Step</p>',
         '<h2 class="info-title">' + escapeHtml(node.name) + "</h2>",
-        '<div class="meta">' + escapeHtml((step ? "Step " + step.step + " • " : "") + (groupLabels[node.group] || node.group)) + "</div>",
+        '<div class="meta">' + escapeHtml((latestStep ? latestStep.qty + " • " : "") + (groupLabels[node.group] || node.group)) + "</div>",
         renderNodeImage(node),
-        '<p class="info-lead">' + escapeHtml(step ? step.note : (details.description || "No description provided.")) + "</p>",
+        '<p class="info-lead">' + escapeHtml(latestStep ? latestStep.note : (details.description || "No description provided.")) + "</p>",
         '<section class="section"><h3>Costs</h3>',
         '<div class="stats">',
         '<div class="stat-card"><strong>' + formatCostValue(cost.minerals) + '</strong><span>Minerals</span></div>',
@@ -1938,6 +1953,25 @@
         "</div></section>",
         sectionHtml
       ].join("");
+    }
+
+    function renderBuildOrderStepsSection(steps) {
+      if (!steps.length) {
+        return "";
+      }
+
+      return '<section class="section"><h3>Build Order Steps</h3>' +
+        steps
+          .map((step) => {
+            return [
+              '<div class="relationship-card">',
+              '<strong>Step ' + escapeHtml(String(step.step)) + " • " + escapeHtml(formatPlaybackTime(step.time)) + " • " + escapeHtml(String(step.supply)) + " Supply • " + escapeHtml(step.qty) + "</strong>",
+              '<p>' + escapeHtml(step.note) + "</p>",
+              "</div>"
+            ].join("");
+          })
+          .join("") +
+        "</section>";
     }
 
     function renderEdgePanel(edge) {
@@ -2156,6 +2190,13 @@
 
       setPlaybackSliderTime(currentTime);
       syncSelectionWithVisibility(visibleNodeIds, visibleEdgeIds);
+
+      const selection = network.getSelection();
+      if (selection.nodes.length && visibleNodeIds.has(selection.nodes[0])) {
+        renderBuildOrderNodePanel(nodesById[selection.nodes[0]]);
+      } else if (selection.edges.length && visibleEdgeIds.has(selection.edges[0])) {
+        renderEdgePanel(visEdges.get(selection.edges[0]));
+      }
     }
 
     function setViewMode(mode) {
