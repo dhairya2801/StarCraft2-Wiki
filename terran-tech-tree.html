@@ -1668,25 +1668,36 @@
 
     const buildOrderName = "Reaper Fast Expand into 1-1-1";
     const buildOrderDuration = 300;
+    const buildOrderMeta = {
+      name: "Reaper Fast Expand into 1-1-1",
+      matchup: "TvX (Standard Opening)",
+      difficulty: "Intermediate",
+      overview: "A standard Terran opener built around early Reaper scouting, a quick economic follow-up, and the Barracks-Factory-Starport 1-1-1 shell for flexible reactions.",
+      pros: ["Extremely safe", "Great scouting", "Flexible transition"],
+      cons: ["Requires solid macro while controlling the Reaper", "Early mistakes can delay the Factory-Starport curve"]
+    };
     const buildOrder = [
-      { time: 0, targetNode: "Command Center", label: "Start with Command Center" },
-      { time: 0, targetNode: "SCV", label: "Start with SCV" },
-      { time: 0, targetNode: "Minerals", label: "Start with Minerals" },
-      { time: 18, targetNode: "Supply Depot", label: "Supply Depot" },
-      { time: 39, targetNode: "Barracks", label: "Barracks" },
-      { time: 45, targetNode: "Refinery", label: "Refinery" },
-      { time: 90, targetNode: "Reaper", label: "Reaper" },
-      { time: 90, targetNode: "Vespene Gas", label: "Vespene Gas" },
-      { time: 105, targetNode: "Orbital Command", label: "Orbital Command" },
-      { time: 120, targetNode: "Factory", label: "Factory" },
-      { time: 135, targetNode: "Reactor", label: "Reactor" },
-      { time: 150, targetNode: "Marine", label: "Marine" },
-      { time: 165, targetNode: "Starport", label: "Starport" },
-      { time: 170, targetNode: "Hellion", label: "Hellion" },
-      { time: 200, targetNode: "Medivac", label: "Medivac" },
-      { time: 210, targetNode: "Widow Mine", label: "Widow Mine" }
+      { step: 1, time: 0, supply: 12, targetNode: "Command Center", qty: "1x", label: "Start with Command Center", note: "Queue SCVs immediately and keep mineral income uninterrupted." },
+      { step: 1, time: 0, supply: 12, targetNode: "SCV", qty: "12x start", label: "Start with SCV", note: "Your opening economy depends on constant SCV production from the first second." },
+      { step: 1, time: 0, supply: 12, targetNode: "Minerals", qty: "Primary income", label: "Start with Minerals", note: "Minerals fund the fast Depot, Barracks, and Command Center follow-up." },
+      { step: 2, time: 18, supply: 14, targetNode: "Supply Depot", qty: "1x", label: "Supply Depot", note: "Build at the top of your main ramp to start the wall and prevent an early supply block." },
+      { step: 3, time: 39, supply: 16, targetNode: "Barracks", qty: "1x", label: "Barracks", note: "Place it near the Depot so your wall-off stays clean and your first Reaper timing stays sharp." },
+      { step: 4, time: 45, supply: 16, targetNode: "Refinery", qty: "1x", label: "Refinery", note: "Put 3 SCVs on gas when it finishes so you can afford the first Reaper and Factory on time." },
+      { step: 5, time: 90, supply: 19, targetNode: "Reaper", qty: "1x", label: "Reaper", note: "Send it across the map immediately to scout tech, pressure lightly, and confirm how greedy the opponent is." },
+      { step: 6, time: 90, supply: 19, targetNode: "Vespene Gas", qty: "3x SCVs", label: "Vespene Gas", note: "Stable gas income keeps the Orbital, Factory, and add-on sequence from slipping." },
+      { step: 7, time: 105, supply: 19, targetNode: "Orbital Command", qty: "1x", label: "Orbital Command", note: "This is the standard Terran macro upgrade for energy, MULEs, and a stronger early economy." },
+      { step: 8, time: 120, supply: 21, targetNode: "Factory", qty: "1x", label: "Factory", note: "Factory completes the first half of the 1-1-1 core and unlocks Hellion or Widow Mine reactions." },
+      { step: 9, time: 135, supply: 22, targetNode: "Reactor", qty: "1x", label: "Reactor", note: "A Reactor on the Barracks is the standard branch for fast Marine production and later swaps." },
+      { step: 10, time: 150, supply: 22, targetNode: "Marine", qty: "1x", label: "Marine", note: "The early Marine helps deny scouting, anchors your defense, and keeps the Barracks active after the Reaper." },
+      { step: 11, time: 165, supply: 24, targetNode: "Starport", qty: "1x", label: "Starport", note: "This completes the 1-1-1 shell and gives maximum follow-up flexibility into Medivac, Viking, or Liberator tech." },
+      { step: 12, time: 170, supply: 24, targetNode: "Hellion", qty: "1x", label: "Hellion", note: "A fast Hellion adds map control and pairs naturally with Reaper scouting against early light units." },
+      { step: 13, time: 200, supply: 28, targetNode: "Medivac", qty: "1x", label: "Medivac", note: "The Medivac opens drop threats, supports bio mobility, and is one of the most standard 1-1-1 follow-ups." },
+      { step: 14, time: 210, supply: 29, targetNode: "Widow Mine", qty: "1x", label: "Widow Mine", note: "A Widow Mine rounds out the opening with efficient defense and strong drop or zoning utility." }
     ];
     const buildOrderNodeIds = new Set(buildOrder.map((step) => step.targetNode));
+    const buildOrderStepsByNode = Object.fromEntries(
+      buildOrder.map((step) => [step.targetNode, step])
+    );
 
     function assertKnownNodeId(nodeId, contextLabel) {
       if (!nodeIds.has(nodeId)) {
@@ -1839,6 +1850,19 @@
       ].join("");
     }
 
+    function renderBuildOrderPanel() {
+      infoPanel.innerHTML = [
+        '<p class="info-kicker">Build Order</p>',
+        '<h2 class="info-title">' + escapeHtml(buildOrderMeta.name) + "</h2>",
+        '<div class="meta">' + escapeHtml(buildOrderMeta.matchup) + " • " + escapeHtml(buildOrderMeta.difficulty) + "</div>",
+        '<p class="info-lead">' + escapeHtml(buildOrderMeta.overview) + "</p>",
+        '<section class="section"><h3>Pros</h3>' + renderTags(buildOrderMeta.pros) + "</section>",
+        '<section class="section"><h3>Cons</h3>' + renderTags(buildOrderMeta.cons) + "</section>",
+        '<section class="section"><h3>Core Sequence</h3><p class="info-lead">Supply Depot -> Barracks -> Refinery -> Reaper -> Orbital Command -> Factory -> Reactor -> Starport.</p></section>',
+        renderLegend()
+      ].join("");
+    }
+
     function renderNodePanel(node) {
       const details = node.details || {};
       const cost = details.cost || {};
@@ -1869,6 +1893,48 @@
         '<div class="stat-card"><strong>' + formatCostValue(cost.minerals) + '</strong><span>Minerals</span></div>',
         '<div class="stat-card"><strong>' + formatCostValue(cost.gas) + '</strong><span>Gas</span></div>',
         '<div class="stat-card"><strong>' + formatCostValue(cost.supply) + '</strong><span>Supply</span></div>',
+        "</div></section>",
+        sectionHtml
+      ].join("");
+    }
+
+    function renderBuildOrderNodePanel(node) {
+      const details = node.details || {};
+      const cost = details.cost || {};
+      const step = buildOrderStepsByNode[node.name];
+      const sectionHtml = [
+        step ? '<section class="section"><h3>Build Order Step</h3><div class="stats">' +
+          '<div class="stat-card"><strong>' + escapeHtml(String(step.step)) + '</strong><span>Step</span></div>' +
+          '<div class="stat-card"><strong>' + escapeHtml(formatPlaybackTime(step.time)) + '</strong><span>Time</span></div>' +
+          '<div class="stat-card"><strong>' + escapeHtml(String(step.supply)) + '</strong><span>Supply</span></div>' +
+          '</div></section>' : "",
+        step ? '<section class="section"><h3>Execution</h3><div class="meta">' + escapeHtml(step.qty) + '</div><p class="info-lead">' + escapeHtml(step.note) + "</p></section>" : "",
+        renderSection("Requires", details.requires),
+        renderSection("Produces", details.produces),
+        renderSection("Unlocks", details.unlocks),
+        renderSection("Upgrades From", details.upgradesFrom),
+        renderSection("Upgrades To", details.upgradesTo),
+        renderSection("Provides", details.provides),
+        renderSection("Builds", details.builds),
+        renderSection("Harvests", details.harvests),
+        renderSection("Attaches To", details.attachesTo),
+        renderSection("Effect", details.effect),
+        renderSection("Used For", details.usedFor),
+        renderSection("Provided By", details.providedBy),
+        renderSection("Add-ons", details.addOns)
+      ].join("");
+
+      infoPanel.innerHTML = [
+        '<p class="info-kicker">Build Step</p>',
+        '<h2 class="info-title">' + escapeHtml(node.name) + "</h2>",
+        '<div class="meta">' + escapeHtml((step ? "Step " + step.step + " • " : "") + (groupLabels[node.group] || node.group)) + "</div>",
+        renderNodeImage(node),
+        '<p class="info-lead">' + escapeHtml(step ? step.note : (details.description || "No description provided.")) + "</p>",
+        '<section class="section"><h3>Costs</h3>',
+        '<div class="stats">',
+        '<div class="stat-card"><strong>' + formatCostValue(cost.minerals) + '</strong><span>Minerals</span></div>',
+        '<div class="stat-card"><strong>' + formatCostValue(cost.gas) + '</strong><span>Gas</span></div>',
+        '<div class="stat-card"><strong>' + formatCostValue(cost.supply) + '</strong><span>Supply Cost</span></div>',
         "</div></section>",
         sectionHtml
       ].join("");
@@ -2054,7 +2120,11 @@
 
       if (hasHiddenNodeSelection || hasHiddenEdgeSelection) {
         network.unselectAll();
-        renderDefaultPanel();
+        if (currentViewMode === "build") {
+          renderBuildOrderPanel();
+        } else {
+          renderDefaultPanel();
+        }
       }
     }
 
@@ -2094,9 +2164,11 @@
 
       if (isBuildMode) {
         updateBuildOrderVisibility(Number(playbackSlider.value));
+        renderBuildOrderPanel();
       } else {
         stopPlayback();
         showFullTechTree();
+        renderDefaultPanel();
       }
 
       setPlaybackControlsEnabled(isBuildMode);
@@ -2192,12 +2264,21 @@
 
     network.on("click", function (params) {
       if (params.nodes.length) {
-        renderNodePanel(nodesById[params.nodes[0]]);
+        if (currentViewMode === "build") {
+          renderBuildOrderNodePanel(nodesById[params.nodes[0]]);
+        } else {
+          renderNodePanel(nodesById[params.nodes[0]]);
+        }
         return;
       }
 
       if (params.edges.length) {
         renderEdgePanel(visEdges.get(params.edges[0]));
+        return;
+      }
+
+      if (currentViewMode === "build") {
+        renderBuildOrderPanel();
         return;
       }
 
