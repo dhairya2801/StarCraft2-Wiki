@@ -161,24 +161,42 @@
     }
 
     .canvas-actions {
-      display: flex;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
       align-items: center;
       gap: 12px;
-      flex-wrap: wrap;
-      justify-content: space-between;
     }
 
     .header-link {
+      appearance: none;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       border-radius: 16px;
       padding: 10px 14px;
       text-decoration: none;
+      font: inherit;
       font-weight: 600;
       color: var(--text);
+      cursor: pointer;
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .canvas-links {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .view-mode-toggle[aria-pressed="true"] {
+      color: #09111a;
+      background:
+        linear-gradient(135deg, rgba(210, 169, 88, 0.92), rgba(255, 255, 255, 0.82)),
+        rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.18);
     }
 
     .canvas-badge {
@@ -249,6 +267,100 @@
     .like-widget[data-like-state="liked"] .like-button {
       color: var(--accent-2);
       background: linear-gradient(135deg, rgba(116, 183, 255, 0.24), rgba(255, 255, 255, 0.08));
+    }
+
+    .view-panel {
+      min-width: 0;
+      padding: 14px 16px;
+      min-height: 68px;
+      display: flex;
+      align-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      background:
+        radial-gradient(circle at top left, rgba(210, 169, 88, 0.14), transparent 26%),
+        radial-gradient(circle at 88% 22%, rgba(116, 183, 255, 0.12), transparent 18%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)),
+        rgba(9, 14, 24, 0.42);
+    }
+
+    .view-panel .canvas-subtitle {
+      max-width: none;
+    }
+
+    .playback-controls {
+      width: 100%;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .playback-controls[hidden] {
+      display: none;
+    }
+
+    .playback-button {
+      appearance: none;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      min-width: 84px;
+      height: 40px;
+      padding: 0 16px;
+      font: inherit;
+      font-weight: 800;
+      color: var(--text);
+      cursor: pointer;
+      background:
+        linear-gradient(135deg, rgba(210, 169, 88, 0.34), rgba(116, 183, 255, 0.22)),
+        rgba(255, 255, 255, 0.04);
+      transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.16);
+    }
+
+    .playback-button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255, 255, 255, 0.18);
+      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.2);
+    }
+
+    .playback-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.58;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .playback-button[aria-pressed="true"] {
+      color: #09111a;
+      background:
+        linear-gradient(135deg, rgba(210, 169, 88, 0.92), rgba(255, 255, 255, 0.82)),
+        rgba(255, 255, 255, 0.08);
+    }
+
+    .playback-slider {
+      width: 100%;
+      margin: 0;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .playback-slider:disabled {
+      cursor: not-allowed;
+      opacity: 0.58;
+    }
+
+    .time-readout {
+      min-width: 98px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #e5edf8;
+      font-size: 0.92rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
     }
 
     #network {
@@ -470,6 +582,23 @@
       .canvas-title-row {
         align-items: flex-start;
       }
+
+      .canvas-actions {
+        grid-template-columns: 1fr;
+      }
+
+      .canvas-links {
+        justify-content: flex-start;
+      }
+
+      .playback-controls {
+        grid-template-columns: 1fr;
+      }
+
+      .playback-button,
+      .time-readout {
+        width: 100%;
+      }
     }
 
     @media (max-width: 640px) {
@@ -516,6 +645,14 @@
         padding: 0 10px;
       }
 
+      .view-panel {
+        padding: 13px 13px 15px;
+      }
+
+      .canvas-links {
+        width: 100%;
+      }
+
       #network {
         height: clamp(320px, 58dvh, 460px);
         min-height: clamp(320px, 58dvh, 460px);
@@ -544,10 +681,29 @@
             </div>
           </div>
           <div class="canvas-actions">
-            <p class="canvas-subtitle">
-              Drag nodes, zoom the psionic map, and click any node or arrow for details.
-            </p>
-            <a class="header-link" href="index.html">Back to Wiki</a>
+            <div class="view-panel" id="view-panel" data-view-mode="full">
+              <p class="canvas-subtitle" id="view-tip">
+                Drag nodes, zoom the psionic map, and click any node or arrow for details.
+              </p>
+              <div class="playback-controls" id="playback-controls" hidden>
+                <button class="playback-button" id="build-order-toggle" type="button" aria-pressed="false">Play</button>
+                <input
+                  class="playback-slider"
+                  id="build-order-slider"
+                  type="range"
+                  min="0"
+                  max="440"
+                  value="0"
+                  step="1"
+                  aria-label="Build order timeline"
+                />
+                <div class="time-readout" id="build-order-time" aria-live="polite">Time: 0:00</div>
+              </div>
+            </div>
+            <div class="canvas-links">
+              <button class="header-link view-mode-toggle" id="view-mode-toggle" type="button" aria-pressed="false">View Build Order</button>
+              <a class="header-link" href="index.html">Back to Wiki</a>
+            </div>
           </div>
         </div>
         <div id="network"></div>
@@ -1687,17 +1843,100 @@
 
     protossImageMap[normalizeAssetKey("Warp Prism")] = "img/protoss/SC2WarpPrismFlying.jpg";
 
-    const nameToId = Object.fromEntries(rawNodes.map((node, index) => [node.name, index + 1]));
-    const nodesById = Object.fromEntries(rawNodes.map((node, index) => [index + 1, node]));
+    const nodesById = Object.fromEntries(rawNodes.map((node) => [node.name, node]));
+    const nodeIds = new Set(rawNodes.map((node) => node.name));
+
+    const buildOrderName = "1 Gate Expand into Blink Robo-Colossus";
+    const buildOrderDuration = 440;
+    const buildOrderMeta = {
+      name: "1 Gate Expand into Blink Robo-Colossus",
+      matchup: "PvT (Standard Macro Opening)",
+      difficulty: "Intermediate",
+      overview: "A standard Protoss macro opener built around a fast one-Gateway expand, early Warp Gate and Blink pressure, and a clean Robotics transition into Observer control, Warp Prism pressure, and Colossus splash.",
+      pros: ["Safe expand structure", "Strong Blink map control", "Clear Robo transition into splash"],
+      cons: ["Gas timings are tight", "Chrono usage matters", "Blink mistakes can bleed tempo"],
+      reference: "Adapted from Spawning Tool's 'MaxPax PvT Blink into Colossus' (published March 29, 2025; updated April 8, 2025) and cross-checked with 'PvT - 1 Gate Expand (Blink/Robo/Clossus)' (updated June 15, 2025).",
+      sequence: "Pylon -> Gateway -> Assimilator -> Cybernetics Core -> natural Nexus -> Adept -> Warp Gate -> Stalker -> Twilight Council -> Robotics Facility -> Observer -> third Nexus -> Robotics Bay -> Warp Prism -> Immortal -> Colossus."
+    };
+    const buildOrder = [
+      { step: 1, time: 0, supply: 12, targetNode: "Nexus", qty: "1x start", note: "Chrono Probe production immediately. The entire opener is built around smooth worker growth into a quick one-Gateway expand." },
+      { step: 1, time: 0, supply: 12, targetNode: "Probe", qty: "12x start", note: "Do not cut early Probes unless you are reacting to real pressure. This build is strongest when the economy stays uninterrupted." },
+      { step: 1, time: 0, supply: 12, targetNode: "Minerals", qty: "Primary income", note: "Minerals cover the first Pylon, Gateway, natural Nexus, and later multi-Gateway explosion behind Blink." },
+      { step: 2, time: 17, supply: 14, targetNode: "Pylon", qty: "1x", note: "Place the first Pylon to set up supply and a clean wall while keeping your tech path powered." },
+      { step: 3, time: 35, supply: 16, targetNode: "Gateway", qty: "1x", note: "The opening Gateway anchors the 1 Gate expand and keeps early unit choices flexible." },
+      { step: 4, time: 45, supply: 16, targetNode: "Assimilator", qty: "1x", note: "The first gas pays for Cybernetics Core, Warp Gate, and the initial Adept into Stalker sequence." },
+      { step: 5, time: 83, supply: 20, targetNode: "Cybernetics Core", qty: "1x", note: "The Core unlocks Warp Gate plus the Twilight Council and Robotics Facility branches that define the midgame." },
+      { step: 6, time: 90, supply: 20, targetNode: "Nexus", qty: "2x total", note: "The natural Nexus is the economic backbone of the opener and the reason the 1 Gate expand stays standard." },
+      { step: 7, time: 101, supply: 21, targetNode: "Pylon", qty: "2x total", note: "A second Pylon at the natural stabilizes supply and powers the defensive area where the Reaper usually pressures." },
+      { step: 8, time: 108, supply: 22, targetNode: "Assimilator", qty: "2x total", note: "The second gas is what lets you sustain Warp Gate, Blink, and the Robotics transition without slipping key timings." },
+      { step: 9, time: 119, supply: 23, targetNode: "Adept", qty: "1x", note: "The Adept scouts, shades for information, and buys space while the natural economy comes online." },
+      { step: 10, time: 121, supply: 22, targetNode: "Warp Gate", qty: "Research immediately", note: "Start Warp Gate the moment the Core finishes. It is the production backbone of the Blink phase." },
+      { step: 11, time: 139, supply: 26, targetNode: "Stalker", qty: "1x", note: "The first Stalker denies scouting, protects against early air threats, and becomes your main Blink control unit." },
+      { step: 12, time: 151, supply: 29, targetNode: "Twilight Council", qty: "1x", note: "This is the Blink branch. Chrono Blink immediately here to line up the first real map-control window." },
+      { step: 13, time: 164, supply: 31, targetNode: "Gateway", qty: "2x total", note: "Add the second Gateway before Blink completes so the first warp cycles convert into actual pressure." },
+      { step: 14, time: 177, supply: 33, targetNode: "Stalker", qty: "2x total", note: "A second Stalker gives the early Blink core enough density to contest watchtowers and pressure the map." },
+      { step: 15, time: 216, supply: 40, targetNode: "Robotics Facility", qty: "1x", note: "Robotics Facility is the safe PvT follow-up: Observer vision first, then Prism, Immortal, and Colossus options." },
+      { step: 16, time: 218, supply: 40, targetNode: "Gateway", qty: "3x total", note: "A third Gateway keeps warp-in throughput climbing so Blink pressure does not stall after the first cycle." },
+      { step: 17, time: 266, supply: 53, targetNode: "Observer", qty: "1x", note: "The first Observer secures information, checks for mines or drops, and makes Blink movement much safer." },
+      { step: 18, time: 268, supply: 54, targetNode: "Nexus", qty: "3x total", note: "A timely third Nexus converts your map control into economy and sets up the Colossus transition properly." },
+      { step: 19, time: 278, supply: 55, targetNode: "Assimilator", qty: "3x total", note: "The third gas supports heavier Robo production and the coming Forge plus Robotics Bay spend." },
+      { step: 20, time: 296, supply: 61, targetNode: "Observer", qty: "2x total", note: "A second Observer lets you leave one on the map while keeping another with the army for safer movement and scouting." },
+      { step: 21, time: 318, supply: 62, targetNode: "Forge", qty: "1x", note: "Forge adds the normal upgrade layer behind Blink-Robo and starts the path toward stronger midgame trades." },
+      { step: 22, time: 350, supply: 74, targetNode: "Gateway", qty: "6x total", note: "The triple Gateway round is the classic macro swell that turns early Blink map control into real army production." },
+      { step: 23, time: 373, supply: 81, targetNode: "Gateway", qty: "8x total", note: "Two more Gateways finish the full warp-in infrastructure for the midgame push and defensive coverage." },
+      { step: 24, time: 375, supply: 81, targetNode: "Robotics Bay", qty: "1x", note: "Robotics Bay is the pivot from pure Blink pressure into Colossus splash and heavier positional control." },
+      { step: 25, time: 383, supply: 84, targetNode: "Warp Prism", qty: "1x", note: "Warp Prism opens multi-prong pressure and gives your gateway count a threatening reinforcement tool." },
+      { step: 26, time: 395, supply: 87, targetNode: "Assimilator", qty: "4x total", note: "The fourth gas is the missing piece that stabilizes Immortal plus Colossus production behind upgrades." },
+      { step: 27, time: 400, supply: 91, targetNode: "Immortal", qty: "1x", note: "A midgame Immortal adds reliable ground power while you wait for the first Colossus to land." },
+      { step: 28, time: 425, supply: 100, targetNode: "Nexus", qty: "4x total", note: "A fourth Nexus keeps the build scaling once the Blink-Robo shell has secured map space." },
+      { step: 29, time: 440, supply: 109, targetNode: "Colossus", qty: "2x", note: "Double Colossus is the major splash-tech payoff of the build and the reason the Robotics Bay timing matters." }
+    ];
+    const buildOrderNodeIds = new Set(buildOrder.map((step) => step.targetNode));
+    const buildOrderStepsByNode = buildOrder.reduce((stepsByNode, step) => {
+      if (!stepsByNode[step.targetNode]) {
+        stepsByNode[step.targetNode] = [];
+      }
+
+      stepsByNode[step.targetNode].push(step);
+      return stepsByNode;
+    }, {});
+
+    function assertKnownNodeId(nodeId, contextLabel) {
+      if (!nodeIds.has(nodeId)) {
+        throw new Error(contextLabel + ' references an unknown node id: "' + nodeId + '".');
+      }
+    }
+
+    buildOrder.forEach((step) => {
+      assertKnownNodeId(step.targetNode, "Build order");
+    });
+
+    rawRelations.forEach((relation) => {
+      assertKnownNodeId(relation.fromName, "Edge source");
+      assertKnownNodeId(relation.toName, "Edge target");
+    });
+
+    function getVisibleNodeIdsAtTime(currentTime) {
+      return new Set(
+        buildOrder
+          .filter((step) => currentTime >= step.time)
+          .map((step) => step.targetNode)
+      );
+    }
+
+    function getRevealedBuildSteps(nodeName, currentTime) {
+      return (buildOrderStepsByNode[nodeName] || []).filter((step) => currentTime >= step.time);
+    }
 
     const visNodes = new vis.DataSet(
-      rawNodes.map((node, index) => ({
-        id: index + 1,
+      rawNodes.map((node) => ({
+        id: node.name,
         label: node.label,
         group: node.group,
         x: node.x,
         y: node.y,
         title: node.name,
+        hidden: false,
         physics: false,
         fixed: {
           x: true,
@@ -1721,13 +1960,14 @@
       rawRelations.map((relation, index) => {
         const style = edgeStyles[relation.type] || { color: "#62738d", width: 2 };
         return {
-          id: index + 1,
-          from: nameToId[relation.fromName],
-          to: nameToId[relation.toName],
+          id: "edge-" + (index + 1),
+          from: relation.fromName,
+          to: relation.toName,
           arrows: "to",
           color: { color: style.color, highlight: style.color, hover: style.color },
           width: style.width,
           dashes: style.dashes || false,
+          hidden: false,
           title: relation.type + ": " + relation.description,
           relationType: relation.type,
           description: relation.description,
@@ -1808,9 +2048,23 @@
         '<p class="info-kicker">Info Panel</p>',
         '<h2 class="info-title">Protoss Production Map</h2>',
         '<p class="info-lead">Select a node to inspect its description, costs, power requirements, morph chains, and unlocked tech. Select an edge to read the exact relationship between two Protoss tech nodes.</p>',
-        '<div class="meta">Tip: scroll to zoom, drag the canvas to pan, drag nodes to rearrange.</div>',
+        '<div class="meta">Tip: use the header toggle to switch between the full tech tree and the timed build-order playback.</div>',
         renderLegend(),
-        '<section class="section"><h3>Daelaam Logic</h3><p class="info-lead">This version highlights Protoss power infrastructure, Warp Gate transformation, and Archon morphing so the tech tree reads like the actual faction flow instead of a generic build graph.</p></section>'
+        '<section class="section"><h3>Daelaam Logic</h3><p class="info-lead">This version highlights Protoss power infrastructure, Warp Gate transformation, and an adapted Blink-Robo-Colossus playback so the tech tree reads like an actual faction game plan instead of a generic build graph.</p></section>'
+      ].join("");
+    }
+
+    function renderBuildOrderPanel() {
+      infoPanel.innerHTML = [
+        '<p class="info-kicker">Build Order</p>',
+        '<h2 class="info-title">' + escapeHtml(buildOrderMeta.name) + "</h2>",
+        '<div class="meta">' + escapeHtml(buildOrderMeta.matchup) + " • " + escapeHtml(buildOrderMeta.difficulty) + "</div>",
+        '<p class="info-lead">' + escapeHtml(buildOrderMeta.overview) + "</p>",
+        '<section class="section"><h3>Pros</h3>' + renderTags(buildOrderMeta.pros) + "</section>",
+        '<section class="section"><h3>Cons</h3>' + renderTags(buildOrderMeta.cons) + "</section>",
+        '<section class="section"><h3>Core Sequence</h3><p class="info-lead">' + escapeHtml(buildOrderMeta.sequence) + "</p></section>",
+        '<section class="section"><h3>Reference</h3><p class="info-lead">' + escapeHtml(buildOrderMeta.reference) + "</p></section>",
+        renderLegend()
       ].join("");
     }
 
@@ -1828,6 +2082,7 @@
         renderSection("Provides", details.provides),
         renderSection("Radiates", details.radiates),
         renderSection("Recharges", details.recharges),
+        renderSection("Recharged By", details.rechargedBy),
         renderSection("Harvests", details.harvests),
         renderSection("Abilities", details.abilities),
         renderSection("Required For", details.requiredFor),
@@ -1850,6 +2105,68 @@
         "</div></section>",
         sectionHtml
       ].join("");
+    }
+
+    function renderBuildOrderNodePanel(node) {
+      const details = node.details || {};
+      const cost = details.cost || {};
+      const currentTime = Number(playbackSlider.value);
+      const revealedSteps = getRevealedBuildSteps(node.name, currentTime);
+      const latestStep = revealedSteps.length ? revealedSteps[revealedSteps.length - 1] : null;
+      const sectionHtml = [
+        renderBuildOrderStepsSection(revealedSteps),
+        renderSection("Requires", details.requires),
+        renderSection("Produces", details.produces),
+        renderSection("Unlocks", details.unlocks),
+        renderSection("Morphs From", details.morphsFrom),
+        renderSection("Morphs To", details.morphsTo),
+        renderSection("Warps In", details.warpsIn),
+        renderSection("Constructs", details.constructs),
+        renderSection("Provides", details.provides),
+        renderSection("Radiates", details.radiates),
+        renderSection("Recharges", details.recharges),
+        renderSection("Recharged By", details.rechargedBy),
+        renderSection("Harvests", details.harvests),
+        renderSection("Abilities", details.abilities),
+        renderSection("Required For", details.requiredFor),
+        renderSection("Used For", details.usedFor),
+        renderSection("Provided By", details.providedBy),
+        renderSection("Possessed By", details.possessedBy)
+      ].join("");
+
+      infoPanel.innerHTML = [
+        '<p class="info-kicker">Build Step</p>',
+        '<h2 class="info-title">' + escapeHtml(node.name) + "</h2>",
+        '<div class="meta">' + escapeHtml((latestStep ? latestStep.qty + " • " : "") + (groupLabels[node.group] || node.group)) + "</div>",
+        renderNodeImage(node),
+        '<p class="info-lead">' + escapeHtml(latestStep ? latestStep.note : (details.description || "No description provided.")) + "</p>",
+        '<section class="section"><h3>Costs</h3>',
+        '<div class="stats">',
+        '<div class="stat-card"><strong>' + formatCostValue(cost.minerals) + '</strong><span>Minerals</span></div>',
+        '<div class="stat-card"><strong>' + formatCostValue(cost.gas) + '</strong><span>Gas</span></div>',
+        '<div class="stat-card"><strong>' + formatCostValue(cost.supply) + '</strong><span>Supply Cost</span></div>',
+        "</div></section>",
+        sectionHtml
+      ].join("");
+    }
+
+    function renderBuildOrderStepsSection(steps) {
+      if (!steps.length) {
+        return "";
+      }
+
+      return '<section class="section"><h3>Build Order Steps</h3>' +
+        steps
+          .map((step) => {
+            return [
+              '<div class="relationship-card">',
+              '<strong>Step ' + escapeHtml(String(step.step)) + " • " + escapeHtml(formatPlaybackTime(step.time)) + " • " + escapeHtml(String(step.supply)) + " Supply • " + escapeHtml(step.qty) + "</strong>",
+              '<p>' + escapeHtml(step.note) + "</p>",
+              "</div>"
+            ].join("");
+          })
+          .join("") +
+        "</section>";
     }
 
     function renderEdgePanel(edge) {
@@ -1906,11 +2223,39 @@
     };
 
     const network = new vis.Network(container, data, options);
+    const viewPanel = document.getElementById("view-panel");
+    const viewTip = document.getElementById("view-tip");
+    const playbackControls = document.getElementById("playback-controls");
+    const playbackSlider = document.getElementById("build-order-slider");
+    const playbackTime = document.getElementById("build-order-time");
+    const playbackToggle = document.getElementById("build-order-toggle");
+    const viewModeToggle = document.getElementById("view-mode-toggle");
 
     let fitTimer = null;
+    let playbackTimer = null;
+    let currentViewMode = "full";
     let lastViewportWidth = window.innerWidth;
     let lastViewportHeight = window.innerHeight;
     let wasCompactViewport = window.matchMedia("(max-width: 980px)").matches;
+
+    function computeGraphBounds(nodes) {
+      return nodes.reduce(
+        function (bounds, node) {
+          return {
+            minX: Math.min(bounds.minX, node.x),
+            maxX: Math.max(bounds.maxX, node.x),
+            minY: Math.min(bounds.minY, node.y),
+            maxY: Math.max(bounds.maxY, node.y)
+          };
+        },
+        { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity }
+      );
+    }
+
+    const fullGraphBounds = computeGraphBounds(rawNodes);
+    const buildGraphBounds = computeGraphBounds(
+      rawNodes.filter((node) => buildOrderNodeIds.has(node.name))
+    );
 
     function scheduleNetworkFit(delay) {
       window.clearTimeout(fitTimer);
@@ -1921,16 +2266,208 @@
     }
 
     function fitNetworkToViewport() {
-      network.fit({ animation: false });
+      const viewportWidth = container.clientWidth;
+      const viewportHeight = container.clientHeight;
+      if (!viewportWidth || !viewportHeight) {
+        return;
+      }
+
+      const graphBounds = currentViewMode === "build" ? buildGraphBounds : fullGraphBounds;
+      const horizontalPadding = 440;
+      const verticalPadding = 360;
+      const spanX = graphBounds.maxX - graphBounds.minX + horizontalPadding;
+      const spanY = graphBounds.maxY - graphBounds.minY + verticalPadding;
+      let scale = Math.min(viewportWidth / spanX, viewportHeight / spanY);
 
       if (window.matchMedia("(max-width: 980px)").matches) {
-        network.moveTo({
-          position: network.getViewPosition(),
-          scale: network.getScale() * 0.92,
-          animation: false
-        });
+        scale *= 0.92;
+      }
+
+      network.moveTo({
+        position: {
+          x: (graphBounds.minX + graphBounds.maxX) / 2,
+          y: (graphBounds.minY + graphBounds.maxY) / 2
+        },
+        scale: Math.max(0.08, Math.min(scale, 1)),
+        animation: false
+      });
+    }
+
+    function formatPlaybackTime(totalSeconds) {
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      return minutes + ":" + String(seconds).padStart(2, "0");
+    }
+
+    function setPlaybackButtonState(isPlaying) {
+      playbackToggle.textContent = isPlaying ? "Pause" : "Play";
+      playbackToggle.setAttribute("aria-pressed", String(isPlaying));
+    }
+
+    function setPlaybackSliderTime(currentTime) {
+      playbackSlider.setAttribute("aria-valuetext", formatPlaybackTime(currentTime));
+      playbackTime.textContent = "Time: " + formatPlaybackTime(currentTime);
+    }
+
+    function showFullTechTree() {
+      visNodes.update(
+        rawNodes.map((node) => ({
+          id: node.name,
+          hidden: false
+        }))
+      );
+
+      visEdges.update(
+        rawRelations.map((relation, index) => ({
+          id: "edge-" + (index + 1),
+          hidden: false
+        }))
+      );
+    }
+
+    function setPlaybackControlsEnabled(isEnabled) {
+      viewPanel.dataset.viewMode = isEnabled ? "build" : "full";
+      viewTip.hidden = isEnabled;
+      playbackControls.hidden = !isEnabled;
+      playbackToggle.disabled = !isEnabled;
+      playbackSlider.disabled = !isEnabled;
+    }
+
+    function stopPlayback() {
+      if (playbackTimer !== null) {
+        window.clearInterval(playbackTimer);
+        playbackTimer = null;
+      }
+
+      setPlaybackButtonState(false);
+    }
+
+    function syncSelectionWithVisibility(visibleNodeIds, visibleEdgeIds) {
+      const selection = network.getSelection();
+      const hasHiddenNodeSelection = selection.nodes.some((nodeId) => !visibleNodeIds.has(nodeId));
+      const hasHiddenEdgeSelection = selection.edges.some((edgeId) => !visibleEdgeIds.has(edgeId));
+
+      if (hasHiddenNodeSelection || hasHiddenEdgeSelection) {
+        network.unselectAll();
+        if (currentViewMode === "build") {
+          renderBuildOrderPanel();
+        } else {
+          renderDefaultPanel();
+        }
       }
     }
+
+    function updateBuildOrderVisibility(currentTime) {
+      const visibleNodeIds = getVisibleNodeIdsAtTime(currentTime);
+
+      visNodes.update(
+        rawNodes.map((node) => ({
+          id: node.name,
+          hidden: !visibleNodeIds.has(node.name)
+        }))
+      );
+
+      const visibleEdgeIds = new Set();
+      visEdges.update(
+        rawRelations.map((relation, index) => {
+          const edgeId = "edge-" + (index + 1);
+          const isVisible = visibleNodeIds.has(relation.fromName) && visibleNodeIds.has(relation.toName);
+          if (isVisible) {
+            visibleEdgeIds.add(edgeId);
+          }
+
+          return {
+            id: edgeId,
+            hidden: !isVisible
+          };
+        })
+      );
+
+      setPlaybackSliderTime(currentTime);
+      syncSelectionWithVisibility(visibleNodeIds, visibleEdgeIds);
+
+      const selection = network.getSelection();
+      if (selection.nodes.length && visibleNodeIds.has(selection.nodes[0])) {
+        renderBuildOrderNodePanel(nodesById[selection.nodes[0]]);
+      } else if (selection.edges.length && visibleEdgeIds.has(selection.edges[0])) {
+        renderEdgePanel(visEdges.get(selection.edges[0]));
+      }
+    }
+
+    function setViewMode(mode) {
+      const isBuildMode = mode === "build";
+      currentViewMode = isBuildMode ? "build" : "full";
+
+      if (isBuildMode) {
+        updateBuildOrderVisibility(Number(playbackSlider.value));
+        renderBuildOrderPanel();
+      } else {
+        stopPlayback();
+        showFullTechTree();
+        renderDefaultPanel();
+      }
+
+      setPlaybackControlsEnabled(isBuildMode);
+      viewModeToggle.textContent = isBuildMode ? "View Full Tech Tree" : "View Build Order";
+      viewModeToggle.setAttribute("aria-pressed", String(isBuildMode));
+      scheduleNetworkFit(60);
+    }
+
+    function startPlayback() {
+      if (playbackTimer !== null) {
+        return;
+      }
+
+      if (Number(playbackSlider.value) >= buildOrderDuration) {
+        playbackSlider.value = "0";
+        updateBuildOrderVisibility(0);
+      }
+
+      setPlaybackButtonState(true);
+      playbackTimer = window.setInterval(function () {
+        const currentTime = Number(playbackSlider.value);
+        if (currentTime >= buildOrderDuration) {
+          stopPlayback();
+          return;
+        }
+
+        const nextTime = currentTime + 1;
+        playbackSlider.value = String(nextTime);
+        updateBuildOrderVisibility(nextTime);
+
+        if (nextTime >= buildOrderDuration) {
+          stopPlayback();
+        }
+      }, 100);
+    }
+
+    playbackSlider.max = String(buildOrderDuration);
+    playbackToggle.setAttribute("aria-label", "Play or pause " + buildOrderName);
+    viewModeToggle.setAttribute("aria-label", "Toggle between the full tech tree and build order playback");
+    playbackToggle.addEventListener("click", function () {
+      if (playbackTimer !== null) {
+        stopPlayback();
+        return;
+      }
+
+      startPlayback();
+    });
+
+    playbackSlider.addEventListener("input", function () {
+      const currentTime = Number(playbackSlider.value);
+      setPlaybackSliderTime(currentTime);
+
+      if (currentViewMode === "build") {
+        updateBuildOrderVisibility(currentTime);
+      }
+    });
+
+    setPlaybackButtonState(false);
+    setPlaybackSliderTime(Number(playbackSlider.value));
+    viewModeToggle.addEventListener("click", function () {
+      setViewMode(currentViewMode === "build" ? "full" : "build");
+    });
+    setViewMode("full");
 
     scheduleNetworkFit(80);
 
@@ -1963,7 +2500,11 @@
 
     network.on("click", function (params) {
       if (params.nodes.length) {
-        renderNodePanel(nodesById[params.nodes[0]]);
+        if (currentViewMode === "build") {
+          renderBuildOrderNodePanel(nodesById[params.nodes[0]]);
+        } else {
+          renderNodePanel(nodesById[params.nodes[0]]);
+        }
         return;
       }
 
@@ -1972,7 +2513,11 @@
         return;
       }
 
-      renderDefaultPanel();
+      if (currentViewMode === "build") {
+        renderBuildOrderPanel();
+      } else {
+        renderDefaultPanel();
+      }
     });
   </script>
   <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js"></script>
