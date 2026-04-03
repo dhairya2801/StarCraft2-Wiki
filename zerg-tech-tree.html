@@ -161,24 +161,42 @@
     }
 
     .canvas-actions {
-      display: flex;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
       align-items: center;
       gap: 12px;
-      flex-wrap: wrap;
-      justify-content: space-between;
     }
 
     .header-link {
+      appearance: none;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       border-radius: 16px;
       padding: 10px 14px;
       text-decoration: none;
+      font: inherit;
       font-weight: 600;
       color: var(--text);
+      cursor: pointer;
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .canvas-links {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .view-mode-toggle[aria-pressed="true"] {
+      color: #0d1710;
+      background:
+        linear-gradient(135deg, rgba(229, 161, 93, 0.92), rgba(255, 255, 255, 0.82)),
+        rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.18);
     }
 
     .canvas-badge {
@@ -249,6 +267,100 @@
     .like-widget[data-like-state="liked"] .like-button {
       color: var(--accent-2);
       background: linear-gradient(135deg, rgba(229, 161, 93, 0.24), rgba(255, 255, 255, 0.08));
+    }
+
+    .view-panel {
+      min-width: 0;
+      padding: 14px 16px;
+      min-height: 68px;
+      display: flex;
+      align-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      background:
+        radial-gradient(circle at top left, rgba(143, 203, 99, 0.14), transparent 26%),
+        radial-gradient(circle at 88% 22%, rgba(229, 161, 93, 0.12), transparent 18%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)),
+        rgba(9, 14, 24, 0.42);
+    }
+
+    .view-panel .canvas-subtitle {
+      max-width: none;
+    }
+
+    .playback-controls {
+      width: 100%;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .playback-controls[hidden] {
+      display: none;
+    }
+
+    .playback-button {
+      appearance: none;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      min-width: 84px;
+      height: 40px;
+      padding: 0 16px;
+      font: inherit;
+      font-weight: 800;
+      color: var(--text);
+      cursor: pointer;
+      background:
+        linear-gradient(135deg, rgba(143, 203, 99, 0.34), rgba(229, 161, 93, 0.22)),
+        rgba(255, 255, 255, 0.04);
+      transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.16);
+    }
+
+    .playback-button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255, 255, 255, 0.18);
+      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.2);
+    }
+
+    .playback-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.58;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .playback-button[aria-pressed="true"] {
+      color: #0d1710;
+      background:
+        linear-gradient(135deg, rgba(229, 161, 93, 0.92), rgba(255, 255, 255, 0.82)),
+        rgba(255, 255, 255, 0.08);
+    }
+
+    .playback-slider {
+      width: 100%;
+      margin: 0;
+      accent-color: var(--accent-2);
+      cursor: pointer;
+    }
+
+    .playback-slider:disabled {
+      cursor: not-allowed;
+      opacity: 0.58;
+    }
+
+    .time-readout {
+      min-width: 98px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #e5edf8;
+      font-size: 0.92rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
     }
 
     #network {
@@ -470,6 +582,23 @@
       .canvas-title-row {
         align-items: flex-start;
       }
+
+      .canvas-actions {
+        grid-template-columns: 1fr;
+      }
+
+      .canvas-links {
+        justify-content: flex-start;
+      }
+
+      .playback-controls {
+        grid-template-columns: 1fr;
+      }
+
+      .playback-button,
+      .time-readout {
+        width: 100%;
+      }
     }
 
     @media (max-width: 640px) {
@@ -516,6 +645,14 @@
         padding: 0 10px;
       }
 
+      .view-panel {
+        padding: 13px 13px 15px;
+      }
+
+      .canvas-links {
+        width: 100%;
+      }
+
       #network {
         height: clamp(320px, 58dvh, 460px);
         min-height: clamp(320px, 58dvh, 460px);
@@ -544,10 +681,29 @@
             </div>
           </div>
           <div class="canvas-actions">
-            <p class="canvas-subtitle">
-              Drag nodes, zoom the swarm map, and click any node or arrow for details.
-            </p>
-            <a class="header-link" href="index.html">Back to Wiki</a>
+            <div class="view-panel" id="view-panel" data-view-mode="full">
+              <p class="canvas-subtitle" id="view-tip">
+                Drag nodes, zoom the swarm map, and click any node or arrow for details.
+              </p>
+              <div class="playback-controls" id="playback-controls" hidden>
+                <button class="playback-button" id="build-order-toggle" type="button" aria-pressed="false">Play</button>
+                <input
+                  class="playback-slider"
+                  id="build-order-slider"
+                  type="range"
+                  min="0"
+                  max="300"
+                  value="0"
+                  step="1"
+                  aria-label="Build order timeline"
+                />
+                <div class="time-readout" id="build-order-time" aria-live="polite">Time: 0:00</div>
+              </div>
+            </div>
+            <div class="canvas-links">
+              <button class="header-link view-mode-toggle" id="view-mode-toggle" type="button" aria-pressed="false">View Build Order</button>
+              <a class="header-link" href="index.html">Back to Wiki</a>
+            </div>
           </div>
         </div>
         <div id="network"></div>
@@ -1687,17 +1843,87 @@
       })
     );
 
-    const nameToId = Object.fromEntries(rawNodes.map((node, index) => [node.name, index + 1]));
-    const nodesById = Object.fromEntries(rawNodes.map((node, index) => [index + 1, node]));
+    const nodesById = Object.fromEntries(rawNodes.map((node) => [node.name, node]));
+    const nodeIds = new Set(rawNodes.map((node) => node.name));
+
+    const buildOrderName = "Hatch-Gas-Pool into Lair Roach";
+    const buildOrderDuration = 300;
+    const buildOrderMeta = {
+      name: "Hatch-Gas-Pool into Lair Roach",
+      matchup: "ZvX (Standard Macro Opening)",
+      difficulty: "Beginner-Intermediate",
+      overview: "A standard Zerg macro opener built around a fast natural Hatchery, early Queens, Ling Speed support, and a clean transition into Lair plus Roach Warren tech.",
+      pros: ["Safe economic start", "Strong Queen-based defense", "Smooth transition into solid midgame tech"],
+      cons: ["Larva management is demanding", "Early mistakes can snowball into supply or inject delays"]
+    };
+    const buildOrder = [
+      { step: 1, time: 0, supply: 12, targetNode: "Hatchery", qty: "1x start", note: "Your main Hatchery anchors the early economy, larva cycle, and first inject timings." },
+      { step: 1, time: 0, supply: 12, targetNode: "Larva", qty: "3x start", note: "Larva management is the center of every Zerg opener, so every early spend matters." },
+      { step: 1, time: 0, supply: 12, targetNode: "Drone", qty: "12x start", note: "Open with uninterrupted Drone production to reach the natural Hatchery on time." },
+      { step: 1, time: 0, supply: 13, targetNode: "Overlord", qty: "1x start", note: "The starting Overlord scouts and keeps the first macro cycle from supply blocking." },
+      { step: 1, time: 0, supply: 12, targetNode: "Minerals", qty: "Primary income", note: "Minerals pay for the fast natural, Pool, Queens, and early Overlords." },
+      { step: 2, time: 52, supply: 17, targetNode: "Hatchery", qty: "2nd Hatchery", note: "Fast natural expansion is the defining investment in a Hatch-first Zerg opener." },
+      { step: 3, time: 68, supply: 18, targetNode: "Extractor", qty: "1x", note: "Take gas in time for Speed, Lair, and the later Roach Warren follow-up." },
+      { step: 4, time: 74, supply: 17, targetNode: "Spawning Pool", qty: "1x", note: "The Pool unlocks Queens, Zerglings, and your first reliable defensive tools." },
+      { step: 5, time: 89, supply: 19, targetNode: "Vespene Gas", qty: "3x Drones", note: "Full gas saturation keeps the Ling Speed and Lair tech path on schedule." },
+      { step: 6, time: 124, supply: 20, targetNode: "Queen", qty: "2x", note: "Two early Queens are standard for injects, anti-air coverage, and safe macro defense." },
+      { step: 7, time: 126, supply: 24, targetNode: "Zergling", qty: "4x", note: "These first Zerglings scout, deny pressure, and buy time while you keep droning." },
+      { step: 8, time: 153, supply: 30, targetNode: "Overlord", qty: "1x", note: "Keep Overlords flowing so the Queen and Lair transition is not supply blocked." },
+      { step: 9, time: 156, supply: 30, targetNode: "Queen", qty: "1x", note: "A third Queen improves inject consistency and gives more room for creep spread." },
+      { step: 10, time: 171, supply: 35, targetNode: "Overlord", qty: "1x", note: "This Overlord supports the midgame tech transition and stabilizes production space." },
+      { step: 11, time: 199, supply: 41, targetNode: "Lair", qty: "1x", note: "Lair is the key midgame bridge into stronger tech, scouting, and Roach upgrades." },
+      { step: 12, time: 211, supply: 48, targetNode: "Extractor", qty: "3x total", note: "Additional gas is standard once the economy can support Lair tech and heavier unit production." },
+      { step: 13, time: 226, supply: 50, targetNode: "Roach Warren", qty: "1x", note: "Roach Warren gives the opening a sturdy, low-risk midgame follow-up against standard play." },
+      { step: 14, time: 227, supply: 49, targetNode: "Evolution Chamber", qty: "1x", note: "An Evolution Chamber starts the upgrade path and rounds out the basic macro shell." },
+      { step: 15, time: 233, supply: 48, targetNode: "Overlord", qty: "1x", note: "Another Overlord prepares the supply needed for the first serious Roach round." },
+      { step: 16, time: 270, supply: 55, targetNode: "Roach", qty: "6x+", note: "Roaches convert the opener into real map presence and a durable first midgame army." }
+    ];
+    const buildOrderNodeIds = new Set(buildOrder.map((step) => step.targetNode));
+    const buildOrderStepsByNode = buildOrder.reduce((stepsByNode, step) => {
+      if (!stepsByNode[step.targetNode]) {
+        stepsByNode[step.targetNode] = [];
+      }
+
+      stepsByNode[step.targetNode].push(step);
+      return stepsByNode;
+    }, {});
+
+    function assertKnownNodeId(nodeId, contextLabel) {
+      if (!nodeIds.has(nodeId)) {
+        throw new Error(contextLabel + ' references an unknown node id: "' + nodeId + '".');
+      }
+    }
+
+    buildOrder.forEach((step) => {
+      assertKnownNodeId(step.targetNode, "Build order");
+    });
+
+    rawRelations.forEach((relation) => {
+      assertKnownNodeId(relation.fromName, "Edge source");
+      assertKnownNodeId(relation.toName, "Edge target");
+    });
+
+    function getVisibleNodeIdsAtTime(currentTime) {
+      return new Set(
+        buildOrder
+          .filter((step) => currentTime >= step.time)
+          .map((step) => step.targetNode)
+      );
+    }
+
+    function getRevealedBuildSteps(nodeName, currentTime) {
+      return (buildOrderStepsByNode[nodeName] || []).filter((step) => currentTime >= step.time);
+    }
 
     const visNodes = new vis.DataSet(
-      rawNodes.map((node, index) => ({
-        id: index + 1,
+      rawNodes.map((node) => ({
+        id: node.name,
         label: node.label,
         group: node.group,
         x: node.x,
         y: node.y,
         title: node.name,
+        hidden: false,
         physics: false,
         fixed: {
           x: true,
@@ -1721,13 +1947,14 @@
       rawRelations.map((relation, index) => {
         const style = edgeStyles[relation.type] || { color: "#5c7460", width: 2 };
         return {
-          id: index + 1,
-          from: nameToId[relation.fromName],
-          to: nameToId[relation.toName],
+          id: "edge-" + (index + 1),
+          from: relation.fromName,
+          to: relation.toName,
           arrows: "to",
           color: { color: style.color, highlight: style.color, hover: style.color },
           width: style.width,
           dashes: style.dashes || false,
+          hidden: false,
           title: relation.type + ": " + relation.description,
           relationType: relation.type,
           description: relation.description,
@@ -1808,9 +2035,22 @@
         '<p class="info-kicker">Info Panel</p>',
         '<h2 class="info-title">Zerg Production Map</h2>',
         '<p class="info-lead">Select a node to inspect its description, costs, morph chains, requirements, and unlocked tech. Select an edge to read the exact relationship between two Zerg tech nodes.</p>',
-        '<div class="meta">Tip: scroll to zoom, drag the canvas to pan, drag nodes to rearrange.</div>',
+        '<div class="meta">Tip: use the header toggle to switch between the full tech tree and the timed build-order playback.</div>',
         renderLegend(),
         '<section class="section"><h3>Swarm Logic</h3><p class="info-lead">This version emphasizes Zerg mechanics: units morph from Larva, structures morph from Drones, and major tech jumps come from base upgrades such as Hatchery to Lair to Hive.</p></section>'
+      ].join("");
+    }
+
+    function renderBuildOrderPanel() {
+      infoPanel.innerHTML = [
+        '<p class="info-kicker">Build Order</p>',
+        '<h2 class="info-title">' + escapeHtml(buildOrderMeta.name) + "</h2>",
+        '<div class="meta">' + escapeHtml(buildOrderMeta.matchup) + " • " + escapeHtml(buildOrderMeta.difficulty) + "</div>",
+        '<p class="info-lead">' + escapeHtml(buildOrderMeta.overview) + "</p>",
+        '<section class="section"><h3>Pros</h3>' + renderTags(buildOrderMeta.pros) + "</section>",
+        '<section class="section"><h3>Cons</h3>' + renderTags(buildOrderMeta.cons) + "</section>",
+        '<section class="section"><h3>Core Sequence</h3><p class="info-lead">Hatchery -> Extractor -> Spawning Pool -> Queen -> Zergling -> Lair -> Roach Warren -> Roach.</p></section>',
+        renderLegend()
       ].join("");
     }
 
@@ -1845,6 +2085,65 @@
         '<div class="stat-card"><strong>' + formatCostValue(cost.minerals) + '</strong><span>Minerals</span></div>',
         '<div class="stat-card"><strong>' + formatCostValue(cost.gas) + '</strong><span>Gas</span></div>',
         '<div class="stat-card"><strong>' + formatCostValue(cost.supply) + '</strong><span>Supply</span></div>',
+        "</div></section>",
+        sectionHtml
+      ].join("");
+    }
+
+    function renderBuildOrderStepsSection(steps) {
+      if (!steps.length) {
+        return "";
+      }
+
+      return '<section class="section"><h3>Build Order Steps</h3>' +
+        steps
+          .map((step) => {
+            return [
+              '<div class="relationship-card">',
+              '<strong>Step ' + escapeHtml(String(step.step)) + " • " + escapeHtml(formatPlaybackTime(step.time)) + " • " + escapeHtml(String(step.supply)) + " Supply • " + escapeHtml(step.qty) + "</strong>",
+              '<p>' + escapeHtml(step.note) + "</p>",
+              "</div>"
+            ].join("");
+          })
+          .join("") +
+        "</section>";
+    }
+
+    function renderBuildOrderNodePanel(node) {
+      const details = node.details || {};
+      const cost = details.cost || {};
+      const currentTime = Number(playbackSlider.value);
+      const revealedSteps = getRevealedBuildSteps(node.name, currentTime);
+      const latestStep = revealedSteps.length ? revealedSteps[revealedSteps.length - 1] : null;
+      const sectionHtml = [
+        renderBuildOrderStepsSection(revealedSteps),
+        renderSection("Requires", details.requires),
+        renderSection("Morphs From", details.morphsFrom),
+        renderSection("Morphs To", details.morphsTo),
+        renderSection("Produces", details.produces),
+        renderSection("Unlocks", details.unlocks),
+        renderSection("Provides", details.provides),
+        renderSection("Harvests", details.harvests),
+        renderSection("Spreads", details.spreads),
+        renderSection("Produced By", details.producedBy),
+        renderSection("Required For", details.requiredFor),
+        renderSection("Abilities", details.abilities),
+        renderSection("Spawns", details.spawns),
+        renderSection("Used For", details.usedFor),
+        renderSection("Provided By", details.providedBy)
+      ].join("");
+
+      infoPanel.innerHTML = [
+        '<p class="info-kicker">Build Step</p>',
+        '<h2 class="info-title">' + escapeHtml(node.name) + "</h2>",
+        '<div class="meta">' + escapeHtml((latestStep ? latestStep.qty + " • " : "") + (groupLabels[node.group] || node.group)) + "</div>",
+        renderNodeImage(node),
+        '<p class="info-lead">' + escapeHtml(latestStep ? latestStep.note : (details.description || "No description provided.")) + "</p>",
+        '<section class="section"><h3>Costs</h3>',
+        '<div class="stats">',
+        '<div class="stat-card"><strong>' + formatCostValue(cost.minerals) + '</strong><span>Minerals</span></div>',
+        '<div class="stat-card"><strong>' + formatCostValue(cost.gas) + '</strong><span>Gas</span></div>',
+        '<div class="stat-card"><strong>' + formatCostValue(cost.supply) + '</strong><span>Supply Cost</span></div>',
         "</div></section>",
         sectionHtml
       ].join("");
@@ -1904,11 +2203,39 @@
     };
 
     const network = new vis.Network(container, data, options);
+    const viewPanel = document.getElementById("view-panel");
+    const viewTip = document.getElementById("view-tip");
+    const playbackControls = document.getElementById("playback-controls");
+    const playbackSlider = document.getElementById("build-order-slider");
+    const playbackTime = document.getElementById("build-order-time");
+    const playbackToggle = document.getElementById("build-order-toggle");
+    const viewModeToggle = document.getElementById("view-mode-toggle");
 
     let fitTimer = null;
+    let playbackTimer = null;
+    let currentViewMode = "full";
     let lastViewportWidth = window.innerWidth;
     let lastViewportHeight = window.innerHeight;
     let wasCompactViewport = window.matchMedia("(max-width: 980px)").matches;
+
+    function computeGraphBounds(nodes) {
+      return nodes.reduce(
+        function (bounds, node) {
+          return {
+            minX: Math.min(bounds.minX, node.x),
+            maxX: Math.max(bounds.maxX, node.x),
+            minY: Math.min(bounds.minY, node.y),
+            maxY: Math.max(bounds.maxY, node.y)
+          };
+        },
+        { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity }
+      );
+    }
+
+    const fullGraphBounds = computeGraphBounds(rawNodes);
+    const buildGraphBounds = computeGraphBounds(
+      rawNodes.filter((node) => buildOrderNodeIds.has(node.name))
+    );
 
     function scheduleNetworkFit(delay) {
       window.clearTimeout(fitTimer);
@@ -1919,16 +2246,201 @@
     }
 
     function fitNetworkToViewport() {
-      network.fit({ animation: false });
+      const viewportWidth = container.clientWidth;
+      const viewportHeight = container.clientHeight;
+      if (!viewportWidth || !viewportHeight) {
+        return;
+      }
+
+      const graphBounds = currentViewMode === "build" ? buildGraphBounds : fullGraphBounds;
+      const horizontalPadding = 440;
+      const verticalPadding = 360;
+      const spanX = graphBounds.maxX - graphBounds.minX + horizontalPadding;
+      const spanY = graphBounds.maxY - graphBounds.minY + verticalPadding;
+      let scale = Math.min(viewportWidth / spanX, viewportHeight / spanY);
 
       if (window.matchMedia("(max-width: 980px)").matches) {
-        network.moveTo({
-          position: network.getViewPosition(),
-          scale: network.getScale() * 0.92,
-          animation: false
-        });
+        scale *= 0.92;
+      }
+
+      network.moveTo({
+        position: {
+          x: (graphBounds.minX + graphBounds.maxX) / 2,
+          y: (graphBounds.minY + graphBounds.maxY) / 2
+        },
+        scale: Math.max(0.08, Math.min(scale, 1)),
+        animation: false
+      });
+    }
+
+    function formatPlaybackTime(totalSeconds) {
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      return minutes + ":" + String(seconds).padStart(2, "0");
+    }
+
+    function setPlaybackButtonState(isPlaying) {
+      playbackToggle.textContent = isPlaying ? "Pause" : "Play";
+      playbackToggle.setAttribute("aria-pressed", String(isPlaying));
+    }
+
+    function setPlaybackSliderTime(currentTime) {
+      playbackSlider.setAttribute("aria-valuetext", formatPlaybackTime(currentTime));
+      playbackTime.textContent = "Time: " + formatPlaybackTime(currentTime);
+    }
+
+    function showFullTechTree() {
+      visNodes.update(
+        rawNodes.map((node) => ({
+          id: node.name,
+          hidden: false
+        }))
+      );
+
+      visEdges.update(
+        rawRelations.map((relation, index) => ({
+          id: "edge-" + (index + 1),
+          hidden: false
+        }))
+      );
+    }
+
+    function setPlaybackControlsEnabled(isEnabled) {
+      viewPanel.dataset.viewMode = isEnabled ? "build" : "full";
+      viewTip.hidden = isEnabled;
+      playbackControls.hidden = !isEnabled;
+      playbackToggle.disabled = !isEnabled;
+      playbackSlider.disabled = !isEnabled;
+    }
+
+    function stopPlayback() {
+      if (playbackTimer !== null) {
+        window.clearInterval(playbackTimer);
+        playbackTimer = null;
+      }
+
+      setPlaybackButtonState(false);
+    }
+
+    function syncSelectionWithVisibility(visibleNodeIds, visibleEdgeIds) {
+      const selection = network.getSelection();
+      const hasHiddenNodeSelection = selection.nodes.some((nodeId) => !visibleNodeIds.has(nodeId));
+      const hasHiddenEdgeSelection = selection.edges.some((edgeId) => !visibleEdgeIds.has(edgeId));
+
+      if (hasHiddenNodeSelection || hasHiddenEdgeSelection) {
+        network.unselectAll();
+        if (currentViewMode === "build") {
+          renderBuildOrderPanel();
+        } else {
+          renderDefaultPanel();
+        }
       }
     }
+
+    function updateBuildOrderVisibility(currentTime) {
+      const visibleNodeIds = getVisibleNodeIdsAtTime(currentTime);
+
+      visNodes.update(
+        rawNodes.map((node) => ({
+          id: node.name,
+          hidden: !visibleNodeIds.has(node.name)
+        }))
+      );
+
+      const visibleEdgeIds = new Set();
+      visEdges.update(
+        rawRelations.map((relation, index) => {
+          const edgeId = "edge-" + (index + 1);
+          const isVisible = visibleNodeIds.has(relation.fromName) && visibleNodeIds.has(relation.toName);
+          if (isVisible) {
+            visibleEdgeIds.add(edgeId);
+          }
+
+          return {
+            id: edgeId,
+            hidden: !isVisible
+          };
+        })
+      );
+
+      setPlaybackSliderTime(currentTime);
+      syncSelectionWithVisibility(visibleNodeIds, visibleEdgeIds);
+    }
+
+    function setViewMode(mode) {
+      const isBuildMode = mode === "build";
+      currentViewMode = isBuildMode ? "build" : "full";
+
+      if (isBuildMode) {
+        updateBuildOrderVisibility(Number(playbackSlider.value));
+        renderBuildOrderPanel();
+      } else {
+        stopPlayback();
+        showFullTechTree();
+        renderDefaultPanel();
+      }
+
+      setPlaybackControlsEnabled(isBuildMode);
+      viewModeToggle.textContent = isBuildMode ? "View Full Tech Tree" : "View Build Order";
+      viewModeToggle.setAttribute("aria-pressed", String(isBuildMode));
+      scheduleNetworkFit(60);
+    }
+
+    function startPlayback() {
+      if (playbackTimer !== null) {
+        return;
+      }
+
+      if (Number(playbackSlider.value) >= buildOrderDuration) {
+        playbackSlider.value = "0";
+        updateBuildOrderVisibility(0);
+      }
+
+      setPlaybackButtonState(true);
+      playbackTimer = window.setInterval(function () {
+        const currentTime = Number(playbackSlider.value);
+        if (currentTime >= buildOrderDuration) {
+          stopPlayback();
+          return;
+        }
+
+        const nextTime = currentTime + 1;
+        playbackSlider.value = String(nextTime);
+        updateBuildOrderVisibility(nextTime);
+
+        if (nextTime >= buildOrderDuration) {
+          stopPlayback();
+        }
+      }, 100);
+    }
+
+    playbackSlider.max = String(buildOrderDuration);
+    playbackToggle.setAttribute("aria-label", "Play or pause " + buildOrderName);
+    viewModeToggle.setAttribute("aria-label", "Toggle between the full tech tree and build order playback");
+    playbackToggle.addEventListener("click", function () {
+      if (playbackTimer !== null) {
+        stopPlayback();
+        return;
+      }
+
+      startPlayback();
+    });
+
+    playbackSlider.addEventListener("input", function () {
+      const currentTime = Number(playbackSlider.value);
+      setPlaybackSliderTime(currentTime);
+
+      if (currentViewMode === "build") {
+        updateBuildOrderVisibility(currentTime);
+      }
+    });
+
+    setPlaybackButtonState(false);
+    setPlaybackSliderTime(Number(playbackSlider.value));
+    viewModeToggle.addEventListener("click", function () {
+      setViewMode(currentViewMode === "build" ? "full" : "build");
+    });
+    setViewMode("full");
 
     scheduleNetworkFit(80);
 
@@ -1961,12 +2473,21 @@
 
     network.on("click", function (params) {
       if (params.nodes.length) {
-        renderNodePanel(nodesById[params.nodes[0]]);
+        if (currentViewMode === "build") {
+          renderBuildOrderNodePanel(nodesById[params.nodes[0]]);
+        } else {
+          renderNodePanel(nodesById[params.nodes[0]]);
+        }
         return;
       }
 
       if (params.edges.length) {
         renderEdgePanel(visEdges.get(params.edges[0]));
+        return;
+      }
+
+      if (currentViewMode === "build") {
+        renderBuildOrderPanel();
         return;
       }
 
